@@ -1,0 +1,37 @@
+// AX-HUB 백엔드 빌드 설정 (Spring Boot 3.x · Java 17 · JPA)
+// 실행: ./gradlew bootRun   (JDK 17 필요)
+// 빌드: ./gradlew build
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.2.5'
+    id 'io.spring.dependency-management' version '1.1.4'
+}
+
+group = 'com.axhub'
+version = '0.1.0'
+java { sourceCompatibility = '17' }
+
+repositories { mavenCentral() }
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'          // REST API
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'     // JPA/Hibernate
+    implementation 'org.springframework.boot:spring-boot-starter-validation'   // @Valid 검증
+    implementation 'org.springframework.boot:spring-boot-starter-security'     // 인증/인가
+
+    // JWT (io.jsonwebtoken)
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly    'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly    'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+    // 개발용 인메모리 DB (실서비스는 PostgreSQL/MySQL 로 교체)
+    runtimeOnly 'com.h2database:h2'
+
+    // 보일러플레이트 축소 (getter/setter/builder)
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') { useJUnitPlatform() }

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<!--
+  AX-HUB 메인 대시보드 — Figma 등록용 정적 HTML (자체 완결)
+  · 인라인 CSS + 인라인 SVG 아이콘, 외부 리소스 없음
+  · html.to.design / Builder.io 등 Figma HTML 임포트 플러그인으로 등록 가능
+  · 현재 앱(Vue) 화면과 동일한 신한 CI 테마·레이아웃을 정적으로 재현
+-->
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1440" />
+<title>AX-HUB 대시보드</title>
+<style>
+  :root{
+    --navy:#0046FF; --navy-lt:#2878F5; --navy-deep:#00236E; --navy-soft:#E8EEFF;
+    --ink:#15223B; --gray:#565F6D; --gray-lt:#8A94A3; --line:#E5E9F1; --line-strong:#D3D9E4;
+    --canvas:#F6F7F9; --card:#FFFFFF; --accent:#C6982E; --accent-ink:#6B4F12; --accent-bg:#FAF3DE;
+    --green:#0E8A66; --green-bg:#E3F4EE; --red:#D2403A; --red-bg:#FBECEA;
+    --r-lg:12px; --r-md:10px; --r-sm:8px;
+    --shadow:0 1px 2px rgba(15,23,42,.04),0 4px 12px rgba(15,23,42,.05);
+    --shadow-hover:0 8px 20px rgba(15,23,42,.08),0 22px 46px rgba(15,23,42,.11);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard','Malgun Gothic',system-ui,sans-serif;background:var(--canvas);color:var(--ink);
+    font-size:14px;line-height:1.6;letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
+  svg{display:block}
+  /* ── 앱 셸 ── */
+  .app{display:flex;width:1440px;min-height:960px;margin:0 auto;background:var(--canvas)}
+  .sidebar{width:236px;flex-shrink:0;background:var(--card);border-right:1px solid var(--line);
+    display:flex;flex-direction:column;padding:22px 14px 18px}
+  .brand{display:flex;align-items:center;gap:10px;padding:2px 10px 22px}
+  .brand-mark{width:34px;height:34px;border-radius:10px;background:var(--navy);color:#fff;display:flex;
+    align-items:center;justify-content:center;font-weight:800;font-size:15px}
+  .brand-name{font-size:15.5px;font-weight:800;color:var(--ink);line-height:1.2}
+  .brand-sub{display:block;font-size:10px;font-weight:650;color:var(--gray-lt);letter-spacing:1.6px}
+  .side-label{font-size:10.5px;font-weight:750;color:var(--gray-lt);letter-spacing:1.2px;padding:0 12px 8px}
+  .side-nav{display:flex;flex-direction:column;gap:3px;flex:1}
+  .side-nav a{position:relative;display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:var(--r-sm);
+    font-weight:600;font-size:13.5px;color:var(--gray);text-decoration:none}
+  .side-nav a.on{background:#EDF0F4;color:var(--ink);font-weight:750}
+  .side-nav .ico{display:flex;color:var(--gray-lt)}
+  .side-nav a.on .ico{color:var(--ink)}
+  .grow{flex:1}
+  .caret{color:var(--gray-lt);font-size:15px;font-weight:700;transform:rotate(90deg);display:inline-block}
+  .badge-dot{min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:var(--accent);color:#3A2A00;
+    font-size:11px;font-weight:800;line-height:19px;text-align:center}
+  .side-sub{display:flex;flex-direction:column;gap:1px;margin:2px 0 4px}
+  .side-sub a{position:relative;display:flex;align-items:center;padding:7px 12px 7px 38px;border-radius:var(--r-sm);
+    font-size:12.5px;font-weight:600;color:var(--gray-lt);text-decoration:none}
+  .side-sub a.on{color:var(--navy);font-weight:750}
+  .side-sub a::before{content:'';position:absolute;left:24px;top:50%;transform:translateY(-50%);width:4px;height:4px;
+    border-radius:50%;background:var(--line-strong)}
+  .side-sub a.on::before{background:var(--navy)}
+  .side-foot{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:12px}
+  .role-switch{display:flex;background:var(--canvas);border-radius:var(--r-sm);padding:3px}
+  .role-switch span{flex:1;font-size:12px;font-weight:700;padding:6px 0;border-radius:8px;color:var(--gray);text-align:center}
+  .role-switch span.on{background:var(--card);color:var(--navy);box-shadow:0 1px 3px rgba(15,25,40,.12)}
+  .whoami{display:flex;align-items:center;gap:10px;padding:2px 6px}
+  .avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#E4ECF7,#CFDDF0);color:var(--navy);
+    font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
+  .whoami .meta b{display:block;font-size:13px}
+  .whoami .meta span{font-size:11.5px;color:var(--gray-lt)}
+  /* ── 콘텐츠 ── */
+  .content{flex:1;min-width:0;padding:32px 40px 76px}
+  /* 히어로 */
+  .home-hero{position:relative;overflow:hidden;background:linear-gradient(180deg,#FBFCFE,var(--card));
+    border:1px solid var(--line);border-radius:var(--r-lg);padding:30px 32px 26px;margin-bottom:26px;box-shadow:var(--shadow)}
+  .home-hero h2{font-size:22px;font-weight:800;color:var(--ink)}
+  .home-hero p{color:var(--gray);font-size:13.5px;margin:6px 0 18px}
+  .hero-search{display:flex;gap:8px;background:var(--card);border:1px solid var(--line-strong);border-radius:10px;
+    padding:10px 6px 10px 16px;align-items:center;max-width:620px;color:var(--gray-lt)}
+  .hero-search input{flex:1;border:none;outline:none;font-size:14px;color:var(--gray-lt);background:transparent}
+  .hero-stats{display:flex;gap:8px;margin-top:16px}
+  .hero-stat{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:650;color:var(--gray);
+    background:var(--canvas);border:1px solid var(--line);border-radius:999px;padding:6px 13px}
+  .hero-stat b{font-weight:800;color:var(--ink)}
+  .hero-stat .ico{color:var(--navy-lt)}
+  /* 섹션 헤더 */
+  .section{margin-bottom:28px}
+  .section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+  .section-heading{display:flex;align-items:baseline;gap:8px}
+  .sec-t{font-size:15px;font-weight:800;color:var(--ink)}
+  .sec-sub{font-size:12px;font-weight:650;color:var(--gray-lt)}
+  .section-more{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:700;color:var(--navy);
+    padding:5px 9px;border-radius:8px}
+  /* 카드/사각 */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-md)}
+  .sq{width:42px;height:42px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:800}
+  .sq-sm{width:34px;height:34px;border-radius:8px;font-size:13px}
+  .sq-navy{background:linear-gradient(135deg,#E4ECFF,#CFDDFF);color:var(--navy)}
+  .sq-green{background:linear-gradient(135deg,#E3F3EC,#CDE9DD);color:var(--green)}
+  .sq-amber{background:linear-gradient(135deg,#F6EAC7,#EAD79E);color:var(--accent-ink)}
+  /* 이어서 대화 */
+  .conv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .conv-card{display:flex;gap:11px;padding:14px;align-items:flex-start;border-radius:var(--r-md);
+    background:var(--card);border:1px solid var(--line)}
+  .conv-agent{font-size:11.5px;color:var(--gray-lt);font-weight:650}
+  .conv-title{font-weight:750;font-size:13px;margin-top:2px}
+  .conv-foot{display:inline-flex;align-items:center;gap:5px;margin-top:9px;font-size:11px;color:var(--navy-lt);font-weight:700}
+  /* 바로 실행 */
+  .quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .quick{padding:15px 16px;display:flex;flex-direction:column;gap:11px;border-radius:var(--r-md);
+    background:var(--card);border:1px solid var(--line)}
+  .quick-top{display:flex;align-items:center;gap:10px}
+  .quick-name{font-weight:750;font-size:13.5px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fav-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:var(--accent)}
+  .quick-foot{display:flex;align-items:center;gap:8px}
+  .quick-flag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700}
+  .quick-flag i{width:6px;height:6px;border-radius:50%;display:inline-block}
+  .quick-flag.ok{color:var(--green)}.quick-flag.ok i{background:var(--green)}
+  .quick-flag.off{color:var(--gray-lt)}.quick-flag.off i{background:var(--gray-lt)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:32px;padding:0 13px;border-radius:8px;
+    font-weight:700;font-size:12.5px;border:1px solid transparent}
+  .btn-primary{background:var(--navy);color:#fff}
+  .btn-ghost{background:var(--card);color:var(--gray);border-color:var(--line-strong)}
+  /* 하단 2단 */
+  .home-cols{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+  .mini-row{display:flex;align-items:center;gap:11px;padding:12px 16px}
+  .mini-row+.mini-row{border-top:1px solid var(--line)}
+  .rank{width:22px;font-weight:800;color:var(--navy);font-size:12.5px}
+  .mini-name{flex:1;font-size:13px;font-weight:650}
+  .mini-name small{color:var(--gray-lt);font-weight:600}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- 사이드바 -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">AX</div>
+      <div><div class="brand-name">AX-HUB</div><span class="brand-sub">USER PORTAL</span></div>
+    </div>
+    <div class="side-label">MENU</div>
+    <nav class="side-nav">
+      <a class="on"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.2 12 4l9 7.2"/><path d="M5.5 9.8V20h13V9.8"/></svg></span>홈</a>
+      <a><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3"/><path d="M5 8.5h14a1 1 0 0 1 1 1V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9.5a1 1 0 0 1 1-1z"/><path d="M9 13.5h.01"/><path d="M15 13.5h.01"/></svg></span>Agent</a>
+      <a><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>지식(RAG)</a>
+      <a><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg></span>권한 신청</a>
+      <a><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span>내 요청함<span class="grow"></span><span class="badge-dot">2</span></a>
+      <a><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>커뮤니티<span class="grow"></span><span class="caret">›</span></a>
+      <div class="side-sub">
+        <a>공지사항</a><a>활용 가이드</a><a>Q&amp;A</a><a>FAQ</a><a>라운지</a><a>우수 활용사례</a>
+      </div>
+    </nav>
+    <div class="side-foot">
+      <div class="role-switch"><span class="on">사용자</span><span>관리자</span></div>
+      <div class="whoami"><div class="avatar">홍</div><div class="meta"><b>홍길동</b><span>마케팅팀</span></div></div>
+    </div>
+  </aside>
+
+  <!-- 메인 콘텐츠 -->
+  <main class="content">
+    <!-- 히어로 -->
+    <section class="home-hero">
+      <h2>홍길동 님, 무엇을 도와드릴까요?</h2>
+      <p>Agent와 지식을 검색해 바로 실행하고, 하던 대화를 이어가세요.</p>
+      <div class="hero-search">
+        <span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"/><path d="m21 21-4.35-4.35"/></svg></span>
+        <input value="" placeholder="Agent · 지식 통합 검색  (예: 심사, 약관, 재무)" />
+      </div>
+      <div class="hero-stats">
+        <span class="hero-stat"><span class="ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="m6 4 13 8-13 8z"/></svg></span>실행 가능 <b>5</b></span>
+        <span class="hero-stat"><span class="ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 2 15.09 8.26 22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg></span>즐겨찾기 <b>3</b></span>
+        <span class="hero-stat"><span class="ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"/><path d="M12 6v6l4 2"/></svg></span>진행 중 요청 <b>2</b></span>
+      </div>
+    </section>
+
+    <!-- 이어서 대화하기 -->
+    <section class="section">
+      <div class="section-head">
+        <div class="section-heading"><span class="sec-t">이어서 대화하기</span><span class="sec-sub">최근 대화</span></div>
+        <span class="section-more">Agent 전체 ›</span>
+      </div>
+      <div class="conv-grid">
+        <div class="conv-card"><div class="sq sq-navy sq-sm">캠</div><div><div class="conv-agent">캠페인 성과 Agent</div><div class="conv-title">지난달 캠페인 ROI 요약해줘</div><div class="conv-foot">이어서 대화 · 오늘</div></div></div>
+        <div class="conv-card"><div class="sq sq-navy sq-sm">내</div><div><div class="conv-agent">내 업무 요약 Agent</div><div class="conv-title">오늘 일정 브리핑 만들어줘</div><div class="conv-foot">이어서 대화 · 어제</div></div></div>
+        <div class="conv-card"><div class="sq sq-navy sq-sm">IT</div><div><div class="conv-agent">IT 헬프데스크 Agent</div><div class="conv-title">VPN 접속이 안 될 때 해결법</div><div class="conv-foot">이어서 대화 · 2일 전</div></div></div>
+      </div>
+    </section>
+
+    <!-- 바로 실행 -->
+    <section class="section">
+      <div class="section-head">
+        <div class="section-heading"><span class="sec-t">바로 실행</span><span class="sec-sub">4개</span></div>
+        <span class="section-more">전체 보기 ›</span>
+      </div>
+      <div class="quick-grid">
+        <div class="quick"><div class="quick-top"><div class="sq sq-navy sq-sm">내</div><div class="quick-name">내 업무 요약 Agent</div><span class="fav-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 15.09 8.26 22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg></span></div><div class="quick-foot"><span class="quick-flag ok"><i></i> 실행 가능</span><span class="grow"></span><span class="btn btn-primary">실행</span></div></div>
+        <div class="quick"><div class="quick-top"><div class="sq sq-navy sq-sm">캠</div><div class="quick-name">캠페인 성과 Agent</div><span class="fav-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 15.09 8.26 22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg></span></div><div class="quick-foot"><span class="quick-flag ok"><i></i> 실행 가능</span><span class="grow"></span><span class="btn btn-primary">실행</span></div></div>
+        <div class="quick"><div class="quick-top"><div class="sq sq-navy sq-sm">규</div><div class="quick-name">규정·컴플라이언스 Agent</div><span class="fav-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 15.09 8.26 22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg></span></div><div class="quick-foot"><span class="quick-flag off"><i></i> 도구 권한 필요</span><span class="grow"></span><span class="btn btn-ghost">권한</span></div></div>
+        <div class="quick"><div class="quick-top"><div class="sq sq-navy sq-sm">회</div><div class="quick-name">회의록 정리 Agent</div><span class="fav-btn" style="color:var(--gray-lt)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 2 15.09 8.26 22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg></span></div><div class="quick-foot"><span class="quick-flag off"><i></i> 비활성</span><span class="grow"></span><span class="btn btn-ghost">활성화</span></div></div>
+      </div>
+    </section>
+
+    <!-- 하단 2단: 추천 Agent · 처리할 일 -->
+    <div class="home-cols">
+      <section class="section" style="margin:0">
+        <div class="section-head"><div class="section-heading"><span class="sec-t">추천 Agent</span><span class="sec-sub">많이 쓰는 · 실행 가능</span></div><span class="section-more">더 보기 ›</span></div>
+        <div class="card">
+          <div class="mini-row"><span class="rank">1</span><span class="mini-name">IT 헬프데스크 Agent <small>· 3,105회</small></span><span class="btn btn-primary">실행</span></div>
+          <div class="mini-row"><span class="rank">2</span><span class="mini-name">문서 초안 작성 Agent <small>· 1,540회</small></span><span class="btn btn-primary">실행</span></div>
+          <div class="mini-row"><span class="rank">3</span><span class="mini-name">고객 응대 지원 Agent <small>· 421회</small></span><span class="btn btn-primary">실행</span></div>
+          <div class="mini-row"><span class="rank">4</span><span class="mini-name">캠페인 성과 Agent <small>· 198회</small></span><span class="btn btn-primary">실행</span></div>
+        </div>
+      </section>
+      <section class="section" style="margin:0">
+        <div class="section-head"><div class="section-heading"><span class="sec-t">처리할 일</span><span class="sec-sub">4건</span></div><span class="section-more">요청함 ›</span></div>
+        <div class="card">
+          <div class="mini-row"><div class="sq sq-amber sq-sm" style="width:30px;height:30px;font-size:12px">재</div><span class="mini-name">재무분석 Agent <small style="color:var(--red)">· 도구 2개 필요</small></span><span class="btn btn-primary" style="background:var(--accent);color:#3A2A00">권한 요청</span></div>
+          <div class="mini-row"><div class="sq sq-amber sq-sm" style="width:30px;height:30px;font-size:12px">보</div><span class="mini-name">보험금 심사 지원 Agent <small style="color:var(--red)">· 도구 1개 필요</small></span><span class="btn btn-primary" style="background:var(--accent);color:#3A2A00">권한 요청</span></div>
+          <div class="mini-row"><div class="sq sq-amber sq-sm" style="width:30px;height:30px;font-size:12px">상</div><span class="mini-name">상품 약관 Q&amp;A Agent <small style="color:var(--red)">· 도구 1개 필요</small></span><span class="btn btn-primary" style="background:var(--accent);color:#3A2A00">권한 요청</span></div>
+          <div class="mini-row"><div class="sq sq-amber sq-sm" style="width:30px;height:30px;font-size:12px">규</div><span class="mini-name">규정·컴플라이언스 Agent <small style="color:var(--red)">· 도구 1개 필요</small></span><span class="btn btn-primary" style="background:var(--accent);color:#3A2A00">권한 요청</span></div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</body>
+</html>
