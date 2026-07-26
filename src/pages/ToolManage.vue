@@ -1,6 +1,6 @@
 <script setup>
 /**
- * 툴 관리 — 에이전트 생성에 쓰는 도구·미들웨어·스킬·MCP 카탈로그
+ * 툴 관리 — 에이전트 생성에 쓰는 도구·미들웨어·스킬·MCP 카탈로그 · [담당: 개발자 C]
  * -----------------------------------------------------------------------------
  * 원천(툴) 시스템 화면을 본떠 카드 그리드로 구성. 레이아웃은 에이전트 카탈로그와 동일.
  *  · 상단 탭: 내가 사용할 수 있는 목록 / 전체 목록
@@ -124,16 +124,16 @@ function cancelTool(r) {
     <div class="tm-filters">
       <div class="tm-frow">
         <span class="tm-flabel">유형</span>
-        <button class="chip" :class="{ on: !protoFilter }" @click="protoFilter = ''">전체</button>
+        <button class="filter-chip" :class="{ on: !protoFilter }" @click="protoFilter = ''">전체</button>
         <span class="tm-div"></span>
-        <button v-for="p in PROTOS" :key="p" class="chip" :class="{ on: protoFilter === p }" @click="protoFilter = protoFilter === p ? '' : p" :disabled="!protoCount(p)">
+        <button v-for="p in PROTOS" :key="p" class="filter-chip" :class="{ on: protoFilter === p }" @click="protoFilter = protoFilter === p ? '' : p" :disabled="!protoCount(p)">
           <span class="proto-dot" :class="'p-' + p"></span>{{ p }}
         </button>
       </div>
       <div class="tm-frow" v-if="allTags.length">
         <span class="tm-flabel">태그</span>
-        <button v-for="t in allTags" :key="t" class="chip" :class="{ on: tagFilter === t }" @click="toggleTag(t)">{{ t }}</button>
-        <button v-if="tagFilter || protoFilter" class="chip clear" @click="resetFilters"><Icon name="x" :size="11" /> 초기화</button>
+        <button v-for="t in allTags" :key="t" class="filter-chip" :class="{ on: tagFilter === t }" @click="toggleTag(t)">{{ t }}</button>
+        <button v-if="tagFilter || protoFilter" class="filter-chip clear" @click="resetFilters"><Icon name="x" :size="11" /> 초기화</button>
       </div>
     </div>
 

@@ -1,6 +1,6 @@
 <script setup>
 /**
- * 일일점검 보고서 — 배치형 Agent (시스템 관리 하위 메뉴)
+ * 일일점검 보고서 — 배치형 Agent (시스템 관리 하위 메뉴) · [담당: 개발자 D]
  * 매일 06:00 시스템 상태 자동 수집 → AI 초안 → 문서 변환 → 승인 → 그룹웨어 발송.
  */
 import Icon from '../components/Icon.vue'

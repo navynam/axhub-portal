@@ -1,6 +1,6 @@
 <script setup>
 /**
- * 현황 전파 — Computer-Use Agent (시스템 관리 하위 메뉴)
+ * 현황 전파 — Computer-Use Agent (시스템 관리 하위 메뉴) · [담당: 개발자 D]
  * 웹 콘솔·대시보드 자동 탐색 → 이상 판단 → 민감정보 Redaction → 그룹웨어·메일 자동 전파.
  */
 import Icon from '../components/Icon.vue'

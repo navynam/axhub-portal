@@ -1,88 +1,109 @@
-# AX-HUB 사용자 포털 (프로토타입 · v3)
+# AX-HUB 사용자 포털 (프로토타입)
 
-Agent · 지식(RAG) 카탈로그와 권한 요청 → 승인 워크플로우, **Agent 채팅 실행 화면**을 구현한 **Vue 3 + Vite** 프론트엔드 프로토타입입니다.
+신한라이프 **AX-HUB** 사용자 포털 프론트엔드 프로토타입입니다.
+AI **에이전트**·**지식(RAG)** 카탈로그, **권한 요청→승인** 워크플로우, **에이전트 채팅 실행**,
+그리고 관리자용 **시스템 관제(AIOps)** 화면을 하나의 SPA로 제공합니다.
 
-## v3 변경 사항
+- **스택**: Vue 3 (`<script setup>`) · Vite · 목(mock) 데이터 기반 단독 동작
+- **라우팅**: vue-router 없이 `store.page` 기반 간이 라우팅 (`src/App.vue`)
+- **상태관리**: 경량 reactive 스토어 (`src/store/`)
+- **백엔드 연동 seam**: `src/shared/api/config.js` 의 `USE_API` 하나로 mock ↔ 실서버 전환
+- **라이브 데모**: https://navynam.github.io/axhub-portal/ (GitHub Pages 자동 배포)
 
-**디자인 리파인**
-- 이모지 아이콘 전면 제거 → **SVG 라인 아이콘 시스템**(`components/Icon.vue`) 도입
-- Agent·지식 아이콘 → 이니셜 기반 **그라디언트 스퀘어 아바타**로 통일
-- 사이드바 활성 메뉴: 솔리드 채움 → 소프트 배경 + 좌측 인디케이터 바 (Linear/Notion 스타일)
-- 탭: iOS 세그먼트 스타일(활성 항목이 흰 카드로 떠오름), 카드 액션 영역에 헤어라인 구분선
-- 버튼 라운드·섀도·호버 정리, 전체 타이포 letter-spacing 미세 조정
+> 형제 백엔드 스캐폴드: `backend/` (Spring Boot · JPA). `agent`·`permission` 도메인이 레퍼런스 구현.
 
-**Agent 채팅 실행 화면 (신규, `pages/AgentRun.vue`)**
-- 카탈로그·홈·커뮤니티에서 **실행** 클릭 → 해당 Agent의 채팅 화면으로 이동
-- 타이핑 인디케이터 → **스트리밍 응답 시뮬레이션**, 세션별 대화 기록 유지(`store.chats`)
-- 첫 진입 시 **추천 질문 칩** 제공(클릭 즉시 전송)
-- 우측 **인사이트 패널**: Agent 정보(소유·권한), 사용 통계(누적 실행·세션 질문 수), 연결 지식(RAG) 목록, 관련 가이드·사례
-- 커뮤니티 게시글의 "관련 Agent 실행"도 권한 보유 시 채팅으로 직행 (권한 없으면 안내 토스트)
+---
 
-
-## v2 리디자인 포인트 (심플 · 따라가기 쉬운 UX)
-
-- **사이드바 내비게이션** — 상단 GNB → 좌측 고정 사이드바로 전환, 현재 위치가 항상 보임. 역할 전환·프로필은 하단 고정
-- **따라하기 가이드(홈)** — ① 탐색 → ② 권한 요청 → ③ 실행 3단계 카드로 첫 사용자의 동선을 안내
-- **진행 스텝퍼(요청함)** — 모든 요청 행에 `요청 제출 → 승인자 검토 → 완료` 단계를 시각화 (승인=초록 ✓ / 반려=빨강 ✕)
-- **세그먼트 탭·라운드 필** — 탭/버튼/검색을 pill 형태로 통일, 카드 호버 리프트 등 절제된 마이크로 인터랙션
-- **상태 컬러 시맨틱** — 사용중(초록)·요청중(골드)·반려(레드)·내 소유(네이비)를 pill 도트로 일관 표기
-- 반응형(모바일에서 사이드바가 상단 바로 전환), 키보드 포커스, `prefers-reduced-motion` 대응
-
-
-## 실행 방법 (VS Code)
+## 빠른 시작
 
 ```bash
-# 1. 의존성 설치
 npm install
-
-# 2. 개발 서버 실행
-npm run dev
-# → http://localhost:5173
-
-# 3. 프로덕션 빌드
-npm run build
+npm run dev      # http://localhost:5173
+npm run build    # 프로덕션 빌드 → dist/
 ```
 
 > VS Code 확장 추천: **Vue - Official (Volar)**
+> 실서버 연동: 프로젝트 루트에 `.env` — `VITE_USE_API=true`, `VITE_API_BASE=http://localhost:8080/api/v1`
 
-## 구현 화면
+---
 
-| 화면 | 파일 | 주요 기능 |
-|---|---|---|
-| 홈 대시보드 | `src/pages/Home.vue` | 통합검색(Agent+지식), 내 Agent 바로가기·활성 토글, 요청 현황, 인기 Agent |
-| Agent 카탈로그 | `src/pages/Agents.vue` | 내/팀/부서/전사 탭, 상태 pill, 개인 Agent 활성/비활성, 권한 요청·취소·재요청 |
-| 지식(RAG) 카탈로그 | `src/pages/Knowledge.vue` | 동일 범위 탭, 문서 수·연결 Agent·최신화, 권한 요청 |
-| 권한 (내 요청함/승인함) | `src/pages/Permissions.vue` | 역할별 화면 분기, 승인/반려(사유 필수), 일괄 승인, SLA |
-| 커뮤니티 | `src/pages/Community.vue` | 6개 보드, 게시글 목록, 관련 Agent 딥링크 |
+## 화면 구성
 
-## 라이브 데모 시나리오 (권한 순환)
+| 메뉴 | 화면 | 파일 | 접근 | 주요 기능 |
+|---|---|---|---|---|
+| 홈 | 홈 대시보드 | `pages/Home.vue` | 전체 | 통합검색, 내 에이전트 바로가기, 요청 현황 |
+| 에이전트 | 에이전트 카탈로그 | `pages/Agents.vue` | 전체 | 내/전체/즐겨찾기 탭, 폴더 그룹, 권한 요청, 실행 |
+| 〃 | 에이전트 실행(채팅) | `pages/AgentRun.vue` | 전체 | 스트리밍 응답, 대화 기록, 인사이트 패널, 신고/개선요청 |
+| 〃 | 툴 관리 | `pages/ToolManage.vue` | 전체 | 도구·미들웨어·스킬·MCP 카탈로그, 유형·프로토콜·태그 필터, 개별 권한 신청 |
+| 지식관리 | 지식(RAG) 카탈로그 | `pages/Knowledge.vue` | 전체 | 컬렉션 트리, 카드/리스트, 상세 문서목록, **지식 채팅** |
+| 라운지 | 커뮤니티 | `pages/Community.vue` | 전체 | 보드별 게시글, 관련 에이전트 딥링크 |
+| 마이페이지 | 내 요청함 / 승인함 | `pages/Permissions.vue` | 사용자 / 관리자 | 요청 진행 스텝, 승인·반려(사유 필수), 신고함 |
+| 〃 | 권한 신청 | `pages/AccessRequest.vue` | 전체 | 도구·지식 권한 신청 안내 |
+| 시스템 관리 | 시스템 모니터링 | `pages/SysMonitor.vue` | 관리자 | OCP 환경 Agent 관제(토큰·GPU·트래픽·서비스 상태) |
+| 〃 | IT 운영 관리 | `pages/ItOps.vue` | 관리자 | AIOps 관제 콘솔(대시보드·시그널 피드·분석 챗, 축소/확장·스플릿) |
+| 〃 | 현황 전파 | `pages/ComputerUse.vue` | 관리자 | Computer-Use 에이전트(자동 탐색→Redaction→전파) |
+| 〃 | 일일점검 보고서 | `pages/DailyReport.vue` | 관리자 | 배치형 에이전트(수집→AI 초안→승인→발송) |
 
-1. **사용자** 역할에서 `Agent` 탭 → 팀 Agent의 **권한 요청** 클릭 → 사유 입력 후 제출 (상태: 요청중)
-2. 상단 GNB에서 **관리자**로 전환 → `권한(승인함)`에 요청이 표시됨
-3. **승인** 클릭 → **사용자**로 다시 전환 → 해당 Agent가 **사용중**으로 바뀌고 실행 버튼 활성화
-4. **반려** 선택 시 사유 입력 필수 → 사용자 카드에 반려 사유 노출 + 재요청 버튼
+**디자인 테마 5종** — default(기본) / bento(색면 카드) / dynamic(동적 카드) / minimal(행 리스트) / dark(다크).
+우측 상단 설정(⚙) → 테마 전환. `store.theme` + `data-theme` 속성으로 전 화면 즉시 반영.
 
-## 구조
+---
+
+## 핵심 업무 규칙
+
+> **에이전트는 누구나 생성·사용할 수 있으나, 에이전트가 쓰는 도구(리소스)를 하나라도 보유하지 않으면 실행할 수 없다.**
+
+- 실행 가능 여부 `agentReady(agent)` = 모든 `agent.tools` 가 `granted`
+- 미보유 도구 → **권한 요청** → 운영 관리자 **승인** → 도구 `granted` → 실행 버튼 활성화
+- 권한 상태: `owner`(내 소유) · `granted`(보유) · `pending`(요청중) · `none`(미보유) · `denied`(반려)
+
+라이브 데모 시나리오: **사용자**로 에이전트/도구 권한 요청 → 헤더에서 **관리자** 전환 → 승인함에서 **승인** → 다시 **사용자**로 전환 시 실행 가능.
+
+---
+
+## 폴더 구조 (요약)
 
 ```
 src/
-├── main.js            # 엔트리
-├── App.vue            # GNB·역할 전환·페이지 라우팅·모달·토스트
-├── store.js           # reactive 스토어 (권한 요청/승인/반려/취소 로직)
-├── data.js            # 목업 데이터 (Agent 10, 지식 7, 요청 5, 보드 6)
-├── styles.css         # AX-HUB 디자인 토큰 (NAVY #1F3A5F)
-├── components/        # StatusPill, RequestModal, DenyModal
-└── pages/             # Home, Agents, Knowledge, Permissions, Community
+├─ main.js · App.vue · styles.css     앱 진입 · 라우팅/레이아웃 · 전역 스타일(디자인 토큰+5테마)
+├─ shared/        공통: api(config·http) · constants(enums) · utils(format) · models(types)
+├─ store/         전역상태 state.js + 도메인 액션 modules/*.js + 배럴 index.js (+ 하위호환 store.js)
+├─ features/      도메인별 백엔드 연동 서비스 (agent·knowledge·community·permission·auth·access·chatbot)
+├─ pages/         화면 12종 (위 표 참고)
+├─ components/    재사용 컴포넌트 (Icon, StatusPill, 각종 Modal, DetailModal 등)
+└─ data.js        목 데이터 (에이전트·지식·요청·보드·리소스·지식트리)
 ```
 
-## 권한 상태 모델 (Agent · 지식 공통)
+레이어링 규칙: **화면(pages/components) → store(액션)/service → shared/api(http) → 백엔드**.
+화면에서 `fetch` 직접 호출 금지, 백엔드 연동은 `features/*/services` 안에서만(`USE_API` 분기).
 
-`owner`(내 소유) → 활성/비활성 토글
-`none` → **권한 요청** → `pending` → 승인 시 `granted` / 반려 시 `denied`(사유 노출, 재요청) / 기간 종료 시 `expired`(연장 요청)
+---
 
-## 다음 단계 (실서비스 연동 시)
+## 문서 (docs/)
 
-- 목업 데이터 → Agent 생성 사이트 / RAG 생성 사이트 API 연동 (`data.js` 대체)
-- 역할 전환 데모 → EIAM/SSO 세션 기반 역할 판정
-- 상태 저장 → 백엔드 권한 서비스(ABAC) 연동, 감사 로그 기록
-- 페이지 전환 → vue-router 도입, Agent 실행 화면(채팅) 추가
+| 문서 | 내용 |
+|---|---|
+| [기획서](docs/기획서.md) | 서비스 개요·역할·IA·사용자 시나리오·화면별 기획 |
+| [기능명세서](docs/기능명세서.md) | 화면별 기능 상세(기능ID·동작·예외) — QA 테스트 기준 |
+| [아키텍처](docs/ARCHITECTURE.md) | 프론트·백엔드 구조, 레이어링, 풀스택 호출관계, 담당 배분 |
+| [개발가이드](docs/개발가이드.md) | 초급 개발자 온보딩·새 기능 추가 실습·컨벤션 |
+| [퍼블리싱 가이드](docs/퍼블리싱가이드.md) | 디자인 토큰·공통 클래스·5테마·반응형(디자이너/퍼블리셔) |
+| [컴포넌트 카탈로그](docs/컴포넌트카탈로그.md) | 전 컴포넌트 props·emit·사용처 |
+| [API 명세서](docs/API명세서.md) | REST API 계약(프론트 service ↔ 백엔드 controller) |
+| [백엔드 가이드](docs/백엔드가이드.md) | 백엔드 패키지 구조·레이어·새 도메인 구현 표준 |
+
+---
+
+## 팀 담당 배분 (개발자 5 + 디자이너/퍼블리셔)
+
+| 담당 | 영역 |
+|---|---|
+| 개발자 A | 에이전트 도메인 (Home/Agents/AgentRun, store agent·conversation, agentService) |
+| 개발자 B | 지식 도메인 (Knowledge/KnowledgeChat/KnowledgeTreeNode, knowledgeService) |
+| 개발자 C | 권한 도메인 (Permissions/AccessRequest/ToolManage, store request·resource·report) |
+| 개발자 D | 커뮤니티 + 시스템 관리 (Community/SysMonitor/ItOps/ComputerUse/DailyReport) |
+| 개발자 E | 플랫폼/공통 (shared/*, store 코어, 공통 컴포넌트, 인증, 빌드/배포) |
+| 디자이너·퍼블리셔 | 디자인 시스템(styles.css), 5테마, 컴포넌트 스타일, 반응형·접근성 |
+
+> 공통 영역(shared·store 코어·공통 컴포넌트·styles.css) 변경은 **개발자 E 리뷰 필수**.
+> 자세한 내용은 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · [docs/개발가이드.md](docs/개발가이드.md) 참고.
