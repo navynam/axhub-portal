@@ -10,17 +10,22 @@ import Permissions from './pages/Permissions.vue'
 import Community from './pages/Community.vue'
 import AgentRun from './pages/AgentRun.vue'
 import AccessRequest from './pages/AccessRequest.vue'
+import SysMonitor from './pages/SysMonitor.vue'
+import ItOps from './pages/ItOps.vue'
+import ComputerUse from './pages/ComputerUse.vue'
+import DailyReport from './pages/DailyReport.vue'
+import ToolManage from './pages/ToolManage.vue'
 import RequestModal from './components/RequestModal.vue'
 import DenyModal from './components/DenyModal.vue'
 import AgentFab from './components/AgentFab.vue'
 
 /* ── 라우팅 (간이) ── */
-const pages = { home: Home, agents: Agents, knowledge: Knowledge, perms: Permissions, community: Community, run: AgentRun, access: AccessRequest }
+const pages = { home: Home, agents: Agents, tools: ToolManage, knowledge: Knowledge, perms: Permissions, community: Community, run: AgentRun, access: AccessRequest, sysmon: SysMonitor, itops: ItOps, computeruse: ComputerUse, daily: DailyReport }
 const boardIds = computed(() => store.boards.map(b => b.id))
 const current = computed(() => (boardIds.value.includes(store.page) ? Community : pages[store.page] || Home))
 
 /* ── 상단 헤더에 표시할 현재 화면 타이틀 ── */
-const titleMap = { home: 'AX HUB', agents: '에이전트', knowledge: '지식관리', perms: '마이페이지', access: '권한 신청', run: '에이전트' }
+const titleMap = { home: 'AX HUB', agents: '에이전트', tools: '툴 관리', knowledge: '지식관리', perms: '마이페이지', access: '권한 신청', run: '에이전트', sysmon: '시스템 모니터링', itops: 'IT 운영 관리', computeruse: '현황 전파', daily: '일일점검 보고서' }
 const currentTitle = computed(() => (boardIds.value.includes(store.page) ? '라운지' : titleMap[store.page] || 'AX HUB'))
 
 /* ── LNB 메뉴 (설계서 IA 기준) ── */
@@ -28,22 +33,38 @@ const nav = computed(() => {
   // 마이페이지 하위: 내 요청함 / (관리자)승인함 / 권한 신청
   const mypage = [{ key: 'perms-mine', label: '내 요청함', page: 'perms', view: 'mine' }]
   if (store.role === 'admin') mypage.push({ key: 'perms-approve', label: '승인함', page: 'perms', view: 'approve' })
-  mypage.push({ key: 'access', label: '권한 신청', page: 'access' })
 
-  return [
+  const menu = [
     { key: 'home', label: '홈', ico: 'home' },
-    { key: 'agents', label: '에이전트', ico: 'bot', also: ['run'] },
+    {
+      key: 'agents', label: '에이전트', ico: 'bot', children: [
+        { key: 'agents-cat', label: '에이전트 카탈로그', page: 'agents', also: ['run'] },
+        { key: 'tools', label: '툴 관리', page: 'tools' },
+      ],
+    },
     { key: 'knowledge', label: '지식관리', ico: 'book' },
     { key: 'community', label: '라운지', ico: 'chat', children: store.boards.map(b => ({ key: b.id, label: b.name, page: b.id })) },
     { key: 'mypage', label: '마이페이지', ico: 'users', children: mypage },
   ]
+  // 관리자 전용: 시스템 관리 (시스템 모니터링 / IT 운영 관리)
+  if (store.role === 'admin') {
+    menu.push({
+      key: 'system', label: '시스템 관리', ico: 'gear', children: [
+        { key: 'sysmon', label: '시스템 모니터링', page: 'sysmon' },
+        { key: 'itops', label: 'IT 운영 관리', page: 'itops' },
+        { key: 'computeruse', label: '현황 전파', page: 'computeruse' },
+        { key: 'daily', label: '일일점검 보고서', page: 'daily' },
+      ],
+    })
+  }
+  return menu
 })
 
 // 하위 메뉴 항목의 활성 여부
 const childOn = (c) => {
   const page = c.page || c.key
   if (c.view) return store.page === page && store.permsView === c.view
-  return store.page === page
+  return store.page === page || (c.also || []).includes(store.page)
 }
 // 1Depth 메뉴 활성 여부
 const isOn = (n) => {
@@ -150,7 +171,7 @@ const recos = [
       </div>
     </main>
 
-    <AgentFab />
+    <AgentFab v-if="!['sysmon', 'itops', 'computeruse', 'daily'].includes(store.page)" />
 
     <RequestModal v-if="store.modal" />
     <DenyModal v-if="store.denyModal" />

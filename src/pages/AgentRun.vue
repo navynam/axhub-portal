@@ -11,6 +11,7 @@ import {
 } from '../store.js'
 import Icon from '../components/Icon.vue'
 import StatusPill from '../components/StatusPill.vue'
+import ReportModal from '../components/ReportModal.vue'
 
 const agent = computed(() => store.currentAgent)
 const conv = computed(() => currentConv())
@@ -18,6 +19,7 @@ const msgs = computed(() => conv.value?.msgs || [])
 const input = ref('')
 const scrollEl = ref(null)
 const showInsight = ref(true)   // 오른쪽 상세(인사이트) 패널 표시
+const showReport = ref(false)   // 신고·개선요청 팝업
 
 // ── 좌측 채팅 목록 ────────────────────────────────
 const chatQ = ref('')           // 채팅 검색어
@@ -108,6 +110,9 @@ watch(() => msgs.value.map(m => m.text).join('|'), async () => {
       <div class="run-crumb">{{ agent.perm === 'owner' ? 'My Agent' : 'Agent 대화' }}</div>
       <span style="flex:1"></span>
       <StatusPill :perm="agent.perm === 'owner' ? 'owner' : agent.perm" />
+      <button class="btn btn-ghost btn-sm run-report-btn" @click="showReport = true" title="신고 · 개선 요청">
+        <Icon name="flag" :size="14" /> 신고하기
+      </button>
       <button class="btn btn-ghost btn-sm run-insight-toggle" @click="showInsight = !showInsight"
         :aria-pressed="showInsight" :title="showInsight ? '상세 정보 숨기기' : '상세 정보 보기'">
         <Icon name="doc" :size="14" /> {{ showInsight ? '상세 숨기기' : '상세 보기' }}
@@ -250,6 +255,9 @@ watch(() => msgs.value.map(m => m.text).join('|'), async () => {
         </div>
       </aside>
     </div>
+
+    <!-- 신고 · 개선 요청 팝업 -->
+    <ReportModal v-if="showReport" :agent="agent" :messages="msgs" @close="showReport = false" />
   </div>
 
   <div v-else class="card empty">

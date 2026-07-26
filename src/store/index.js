@@ -12,4 +12,5 @@ export * from './modules/agent'        // toggleActive, toggleFavorite, addFolde
 export * from './modules/resource'     // resourcePerm, resourceOwner, agentReady, requestResource
 export * from './modules/request'      // openRequest, submitRequest, cancelRequest, approve, openDeny, confirmDeny, approveAll
 export * from './modules/conversation' // openRun, newConversation, selectConversation, deleteConversation, renameConversation, resumeConversation, currentConv, sendMessage
+export * from './modules/report'       // submitReport, startReportProgress, replyReport, resolveReport, cancelReport, reportCatLabel/StatusLabel/StatusCls
 export * from './modules/meta'         // permMeta, scopeTabs

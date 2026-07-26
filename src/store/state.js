@@ -11,6 +11,9 @@
 import { reactive } from 'vue'
 import { seedAgents, seedKnowledge, seedRequests, seedBoards, seedResources } from '../data.js'
 
+// 에이전트가 활용하는 스킬 풀 (신고/개선요청 시 대상 선택용 데모 데이터)
+const SKILL_POOL = ['자연어 요약', '표·차트 변환', '근거 문장 인용', '멀티턴 문맥 유지', '문서 파싱', '정형 출력(JSON)', '오탈자 교정', '핵심 추출']
+
 // 요청/대화/토스트 등 임시 id 를 만들기 위한 전역 순번 발급기
 let seq = 100
 /** 다음 순번을 발급 (예: 'rq-' + nextId()) */
@@ -25,14 +28,20 @@ export const store = reactive({
 
   // ── 도메인 데이터 (백엔드 연동 전에는 seed 목데이터로 채움) ──
   // folder: 폴더별 그룹화용 (내 소유는 '나의 업무', 그 외 '미분류' 기본)
-  // folder: 폴더 그룹화용 / shares: 공유 횟수(인기 지표, 정렬·베토 대형타일 기준)
-  agents: seedAgents.map(a => ({ ...a, folder: a.perm === 'owner' ? '나의 업무' : '미분류', shares: Math.max(1, Math.round(a.runs / 8)) })),
+  // folder: 폴더 그룹화용 / shares: 공유 횟수(인기 지표) / skills: 에이전트가 쓰는 스킬(신고 대상 선택용)
+  agents: seedAgents.map((a, i) => ({
+    ...a,
+    folder: a.perm === 'owner' ? '나의 업무' : '미분류',
+    shares: Math.max(1, Math.round(a.runs / 8)),
+    skills: [SKILL_POOL[i % SKILL_POOL.length], SKILL_POOL[(i + 3) % SKILL_POOL.length]],
+  })),
   folders: [],       // 사용자가 만든 폴더(에이전트 grouping). seed 폴더는 agent.folder 에서 파생
   knowledge: seedKnowledge.map(k => ({ ...k })),
   requests: seedRequests.map(r => ({ ...r })),
+  reports: [],       // 에이전트 신고/개선요청 (마이페이지 신고함 · 관리자 처리)
   boards: seedBoards,
-  // 리소스(도구) 권한 맵: { [도구이름]: { owner, perm } }
-  resources: Object.fromEntries(seedResources.map(r => [r.name, { owner: r.owner, perm: r.perm }])),
+  // 리소스(도구·미들웨어·스킬·MCP) 권한 맵: { [이름]: { owner, perm, type, proto, desc, tags } }
+  resources: Object.fromEntries(seedResources.map(r => [r.name, { ...r }])),
 
   // ── UI 상태 ──────────────────────────────────────
   modal: null,     // 권한요청 모달 { targetType, item }

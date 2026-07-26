@@ -26,29 +26,46 @@ export const seedAgents = [
 
 // 리소스(도구) 레지스트리 — Agent 실행에 필요한 도구별 운영 부서(owner)와 현재 사용자 권한(perm)
 // perm: 'granted'(보유) | 'none'(권한없음) | 'pending'(요청중) | 'denied'(반려)
+// type: tool(도구) | skill(스킬) | middleware(미들웨어) | mcp(MCP)
+// 리소스(도구·미들웨어·스킬·MCP) 카탈로그
+//  · type: tool | middleware | skill | mcp   (유형 탭)
+//  · proto: built-in | custom | http | mcp-http | mcp-stdio  (연결 방식 배지)
+//  · tags: 검색·필터용 태그   · desc: 카드 설명
 export const seedResources = [
-  { name: '문서 검색', owner: 'AI플랫폼팀', perm: 'granted' },
-  { name: '문서 요약', owner: 'AI플랫폼팀', perm: 'granted' },
-  { name: '요약', owner: 'AI플랫폼팀', perm: 'granted' },
-  { name: '지식 검색', owner: 'AI플랫폼팀', perm: 'granted' },
-  { name: '문서 생성', owner: 'AI플랫폼팀', perm: 'granted' },
-  { name: '근거 조항 인용', owner: 'AI플랫폼팀', perm: 'granted' },
-  { name: '조항 인용', owner: 'AI플랫폼팀', perm: 'granted' },
-  { name: '사내 양식 템플릿', owner: '경영지원부', perm: 'granted' },
-  { name: '응대 문안 생성', owner: 'CS팀', perm: 'granted' },
-  { name: 'FAQ 검색', owner: 'CS팀', perm: 'granted' },
-  { name: '티켓 분류', owner: '정보시스템부', perm: 'granted' },
-  { name: '지표 수집', owner: '데이터플랫폼팀', perm: 'granted' },
-  { name: 'STT 텍스트 정리', owner: 'IT인프라팀', perm: 'granted' },
-  { name: '메일 연동', owner: 'IT인프라팀', perm: 'granted' },
-  { name: '일정 연동', owner: 'IT인프라팀', perm: 'granted' },
-  { name: '유사 사례 비교', owner: '심사부', perm: 'granted' },
-  // 미보유 — 권한 요청 필요(데모)
-  { name: '표 데이터 분석', owner: '데이터플랫폼팀', perm: 'none' },
-  { name: '차트 생성', owner: '데이터플랫폼팀', perm: 'none' },
-  { name: '약관 검색', owner: '상품개발부', perm: 'none' },
-  { name: '심사 기준 검색', owner: '심사부', perm: 'none' },
-  { name: '규정 검색', owner: '준법감시부', perm: 'none' },
+  // ── 도구 ──
+  { name: '문서 검색', type: 'tool', owner: 'AI플랫폼팀', perm: 'granted', proto: 'mcp-http', desc: '사내 문서를 검색합니다', tags: ['rag', 'internal-documents', 'search'] },
+  { name: '지식 검색', type: 'tool', owner: 'AI플랫폼팀', perm: 'granted', proto: 'mcp-http', desc: '지식 베이스를 하이브리드 방식으로 검색합니다', tags: ['rag', 'knowledge-base', 'hybrid-search'] },
+  { name: 'FAQ 검색', type: 'tool', owner: 'CS팀', perm: 'granted', proto: 'built-in', desc: 'FAQ 문서를 검색합니다', tags: ['search', 'knowledge-base'] },
+  { name: '지표 수집', type: 'tool', owner: '데이터플랫폼팀', perm: 'granted', proto: 'http', desc: '운영 지표를 수집합니다', tags: ['api', 'data-extraction'] },
+  { name: '표 데이터 분석', type: 'tool', owner: '데이터플랫폼팀', perm: 'none', proto: 'built-in', desc: '표 형식 데이터를 분석합니다', tags: ['data-extraction', 'code'] },
+  { name: '차트 생성', type: 'tool', owner: '데이터플랫폼팀', perm: 'none', proto: 'built-in', desc: '데이터로 차트를 생성합니다', tags: ['data-extraction'] },
+  { name: '약관 검색', type: 'tool', owner: '상품개발부', perm: 'none', proto: 'mcp-http', desc: '보험 약관 문서를 검색합니다', tags: ['rag', 'internal-documents', 'search'] },
+  { name: '심사 기준 검색', type: 'tool', owner: '심사부', perm: 'none', proto: 'mcp-http', desc: '심사 기준·판례를 검색합니다', tags: ['rag', 'internal-documents'] },
+  { name: '규정 검색', type: 'tool', owner: '준법감시부', perm: 'none', proto: 'mcp-http', desc: '사내 규정·컴플라이언스 문서를 검색합니다', tags: ['rag', 'internal-documents'] },
+  // ── 스킬 ──
+  { name: '문서 요약', type: 'skill', owner: 'AI플랫폼팀', perm: 'granted', proto: 'built-in', desc: '긴 문서를 핵심 위주로 요약합니다', tags: ['ai-powered', 'summarize'] },
+  { name: '요약', type: 'skill', owner: 'AI플랫폼팀', perm: 'granted', proto: 'built-in', desc: '텍스트를 간결하게 요약합니다', tags: ['ai-powered', 'summarize'] },
+  { name: '문서 생성', type: 'skill', owner: 'AI플랫폼팀', perm: 'granted', proto: 'custom', desc: '서식에 맞춰 문서를 생성합니다', tags: ['ai-powered', 'generate'] },
+  { name: '근거 조항 인용', type: 'skill', owner: 'AI플랫폼팀', perm: 'granted', proto: 'custom', desc: '근거가 되는 조항을 찾아 인용합니다', tags: ['ai-powered', 'citation'] },
+  { name: '조항 인용', type: 'skill', owner: 'AI플랫폼팀', perm: 'granted', proto: 'custom', desc: '관련 조항을 인용합니다', tags: ['citation'] },
+  { name: '응대 문안 생성', type: 'skill', owner: 'CS팀', perm: 'granted', proto: 'custom', desc: '고객 응대 문안을 생성합니다', tags: ['ai-powered', 'communication', 'generate'] },
+  { name: '유사 사례 비교', type: 'skill', owner: '심사부', perm: 'granted', proto: 'custom', desc: '유사 심사 사례를 비교합니다', tags: ['ai-powered', 'compare'] },
+  { name: '티켓 분류', type: 'skill', owner: '정보시스템부', perm: 'granted', proto: 'built-in', desc: '문의 티켓을 자동 분류합니다', tags: ['ai-powered', 'classification'] },
+  { name: 'STT 텍스트 정리', type: 'skill', owner: 'IT인프라팀', perm: 'granted', proto: 'built-in', desc: '음성 인식 결과를 정리합니다', tags: ['ai-powered', 'transcription'] },
+  // ── 미들웨어 ──
+  { name: '메일 연동', type: 'middleware', owner: 'IT인프라팀', perm: 'granted', proto: 'http', desc: '사내 메일 시스템과 연동합니다', tags: ['email', 'communication', 'transactional'] },
+  { name: '일정 연동', type: 'middleware', owner: 'IT인프라팀', perm: 'granted', proto: 'http', desc: '캘린더·일정과 연동합니다', tags: ['communication', 'transactional'] },
+  { name: '사내 양식 템플릿', type: 'middleware', owner: '경영지원부', perm: 'granted', proto: 'built-in', desc: '사내 문서 양식을 제공합니다', tags: ['internal-documents'] },
+  { name: '그룹웨어 연동', type: 'middleware', owner: '정보시스템부', perm: 'none', proto: 'http', desc: '그룹웨어와 연동합니다', tags: ['communication', 'transactional'] },
+  { name: 'SSO/EIAM 커넥터', type: 'middleware', owner: '정보시스템부', perm: 'none', proto: 'custom', desc: 'SSO·계정 인증과 연동합니다', tags: ['api', 'transactional'] },
+  { name: 'ITSM 연동', type: 'middleware', owner: 'IT인프라팀', perm: 'none', proto: 'http', desc: 'ITSM 티켓 시스템과 연동합니다', tags: ['api', 'dev-tools', 'transactional'] },
+  // ── MCP ──
+  { name: 'Confluence MCP', type: 'mcp', owner: '협업플랫폼팀', perm: 'granted', proto: 'mcp-http', desc: 'Confluence 문서를 검색·조회합니다', tags: ['knowledge-base', 'search', 'internal-documents'] },
+  { name: 'Jira MCP', type: 'mcp', owner: '협업플랫폼팀', perm: 'none', proto: 'mcp-http', desc: 'Jira 이슈를 조회·관리합니다', tags: ['dev-tools', 'api'] },
+  { name: 'GitHub MCP', type: 'mcp', owner: 'DevOps팀', perm: 'none', proto: 'mcp-http', desc: 'GitHub 저장소·PR을 조회합니다', tags: ['dev-tools', 'code', 'api'] },
+  { name: 'Slack MCP', type: 'mcp', owner: '협업플랫폼팀', perm: 'none', proto: 'mcp-stdio', desc: 'Slack 메시지를 조회·전송합니다', tags: ['communication', 'api'] },
+  { name: 'PostgreSQL MCP', type: 'mcp', owner: '데이터플랫폼팀', perm: 'none', proto: 'mcp-stdio', desc: 'PostgreSQL 데이터를 조회합니다', tags: ['data-extraction', 'api'] },
+  { name: 'Splunk MCP', type: 'mcp', owner: 'IT인프라팀', perm: 'none', proto: 'mcp-stdio', desc: 'Splunk 로그를 검색합니다', tags: ['dev-tools', 'data-extraction'] },
 ]
 
 export const seedKnowledge = [
