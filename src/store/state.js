@@ -9,7 +9,7 @@
  *   그때는 이 파일의 각 필드가 Pinia store 의 state 로, 모듈 액션이 actions 로 매핑된다.
  */
 import { reactive } from 'vue'
-import { seedAgents, seedKnowledge, seedRequests, seedBoards, seedResources } from '../data.js'
+import { seedAgents, seedKnowledge, seedRequests, seedBoards, seedResources, seedKeys } from '../data.js'
 
 // 에이전트가 활용하는 스킬 풀 (신고/개선요청 시 대상 선택용 데모 데이터)
 const SKILL_POOL = ['자연어 요약', '표·차트 변환', '근거 문장 인용', '멀티턴 문맥 유지', '문서 파싱', '정형 출력(JSON)', '오탈자 교정', '핵심 추출']
@@ -42,6 +42,8 @@ export const store = reactive({
   boards: seedBoards,
   // 리소스(도구·미들웨어·스킬·MCP) 권한 맵: { [이름]: { owner, perm, type, proto, desc, tags } }
   resources: Object.fromEntries(seedResources.map(r => [r.name, { ...r }])),
+  // 설정 > KEY 관리: MCP·Agent 등록용 API 키 목록 (설정 팝업에서 추가/삭제)
+  keys: seedKeys.map(k => ({ ...k })),
 
   // ── UI 상태 ──────────────────────────────────────
   modal: null,     // 권한요청 모달 { targetType, item }

@@ -14,3 +14,4 @@ export * from './modules/request'      // openRequest, submitRequest, cancelRequ
 export * from './modules/conversation' // openRun, newConversation, selectConversation, deleteConversation, renameConversation, resumeConversation, currentConv, sendMessage
 export * from './modules/report'       // submitReport, startReportProgress, replyReport, resolveReport, cancelReport, reportCatLabel/StatusLabel/StatusCls
 export * from './modules/meta'         // permMeta, scopeTabs
+export * from './modules/keys'         // KEY_TYPES, keyTypeMeta, maskKey, addKey, removeKey

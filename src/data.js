@@ -68,6 +68,16 @@ export const seedResources = [
   { name: 'Splunk MCP', type: 'mcp', owner: 'IT인프라팀', perm: 'none', proto: 'mcp-stdio', desc: 'Splunk 로그를 검색합니다', tags: ['dev-tools', 'data-extraction'] },
 ]
 
+// 설정 > KEY 관리 — MCP·Agent 등록에 사용하는 API 키 (마스킹 표시용 목데이터)
+//  · type: llm(LLM 모델) | mcp(MCP 서버) | agent(Agent 등록)  · status: active | expired
+export const seedKeys = [
+  { id: 'key-001', name: 'Anthropic Claude', type: 'llm', provider: 'Anthropic', value: 'sk-ant-api03-9Fh2kD8sLxQ4nB1', created: '2026-07-10', status: 'active' },
+  { id: 'key-002', name: 'OpenAI GPT', type: 'llm', provider: 'OpenAI', value: 'sk-proj-7bQ1mZ3vT0aWpE9dRc', created: '2026-06-28', status: 'active' },
+  { id: 'key-003', name: 'GitHub MCP 토큰', type: 'mcp', provider: 'GitHub', value: 'ghp_A1b2C3d4E5f6G7h8I9j0', created: '2026-07-05', status: 'active' },
+  { id: 'key-004', name: 'Confluence MCP', type: 'mcp', provider: 'Atlassian', value: 'ATATT3xFfGF0aBcDeFgHiJkL', created: '2026-07-02', status: 'expired' },
+  { id: 'key-005', name: 'AX-HUB Agent 등록 키', type: 'agent', provider: 'AX-HUB', value: 'axk_live_5Kd9Qw2Rt7Yu3IpM', created: '2026-07-12', status: 'active' },
+]
+
 // 용어사전 — AI/에이전트·보험업무·데이터·인프라 용어 (대화형 조회용 목데이터)
 //  · keys: 검색 매칭 키워드(한/영/약어)  · related: 관련 용어명
 export const glossaryTerms = [
