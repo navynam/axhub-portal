@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AX-HUB — Figma 임포트용 HTML</title>
+<style>
+ body{font-family:Pretendard,'Malgun Gothic',system-ui,sans-serif;background:#f4f7fb;margin:0;padding:32px;color:#15223b}
+ h1{font-size:21px;margin:0 0 6px} p{color:#565f6d;font-size:13.5px;line-height:1.6;margin:0 0 8px} code{color:#8a94a3;font-weight:500;font-size:11px}
+ .g{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:20px}
+ .c{display:block;border:1px solid #e5e9f1;border-radius:14px;overflow:hidden;background:#fff;text-decoration:none;color:inherit;box-shadow:0 1px 3px rgba(21,34,59,.08);transition:.15s}
+ .c:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(21,34,59,.12)}
+ .c img{width:100%;display:block;border-bottom:1px solid #eef1f6;background:#fff}
+ .c span{display:block;padding:11px 13px;font-weight:750;font-size:13.5px}
+</style></head><body>
+ <h1>AX-HUB — Figma 임포트용 HTML (13개 화면)</h1>
+ <p>각 카드를 열면 <b>자체 완결형 HTML</b>(CSS 인라인·스크립트 제거)입니다. Figma <b>html.to.design</b> 플러그인에서 URL 또는 HTML 코드로 임포트하면 각 요소가 편집 가능한 레이어로 변환됩니다.</p>
+ <p>임포트 방법은 <code>docs/피그마연동가이드.md</code> 참고. 코드 변경 후 재생성: <code>node figma-export/_generate.mjs</code></p>
+ <div class="g">
+    <a class="c" href="html/home.html"><img loading="lazy" src="preview/home.png" alt="홈 대시보드"/><span>홈 대시보드 <code>home.html</code></span></a>
+    <a class="c" href="html/agents.html"><img loading="lazy" src="preview/agents.png" alt="에이전트 카탈로그"/><span>에이전트 카탈로그 <code>agents.html</code></span></a>
+    <a class="c" href="html/tools.html"><img loading="lazy" src="preview/tools.png" alt="툴 관리"/><span>툴 관리 <code>tools.html</code></span></a>
+    <a class="c" href="html/run.html"><img loading="lazy" src="preview/run.png" alt="에이전트 실행(대화)"/><span>에이전트 실행(대화) <code>run.html</code></span></a>
+    <a class="c" href="html/knowledge.html"><img loading="lazy" src="preview/knowledge.png" alt="지식관리"/><span>지식관리 <code>knowledge.html</code></span></a>
+    <a class="c" href="html/glossary.html"><img loading="lazy" src="preview/glossary.png" alt="용어사전"/><span>용어사전 <code>glossary.html</code></span></a>
+    <a class="c" href="html/community.html"><img loading="lazy" src="preview/community.png" alt="라운지(커뮤니티)"/><span>라운지(커뮤니티) <code>community.html</code></span></a>
+    <a class="c" href="html/perms.html"><img loading="lazy" src="preview/perms.png" alt="마이페이지(요청함)"/><span>마이페이지(요청함) <code>perms.html</code></span></a>
+    <a class="c" href="html/access.html"><img loading="lazy" src="preview/access.png" alt="권한 신청"/><span>권한 신청 <code>access.html</code></span></a>
+    <a class="c" href="html/sysmon.html"><img loading="lazy" src="preview/sysmon.png" alt="시스템 모니터링"/><span>시스템 모니터링 <code>sysmon.html</code></span></a>
+    <a class="c" href="html/itops.html"><img loading="lazy" src="preview/itops.png" alt="IT 운영 관리"/><span>IT 운영 관리 <code>itops.html</code></span></a>
+    <a class="c" href="html/computeruse.html"><img loading="lazy" src="preview/computeruse.png" alt="현황 전파"/><span>현황 전파 <code>computeruse.html</code></span></a>
+    <a class="c" href="html/daily.html"><img loading="lazy" src="preview/daily.png" alt="일일점검 보고서"/><span>일일점검 보고서 <code>daily.html</code></span></a>
+ </div>
+</body></html>
