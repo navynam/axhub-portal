@@ -6,6 +6,7 @@ import SettingsModal from './components/SettingsModal.vue'
 import Home from './pages/Home.vue'
 import Agents from './pages/Agents.vue'
 import Knowledge from './pages/Knowledge.vue'
+import Glossary from './pages/Glossary.vue'
 import Permissions from './pages/Permissions.vue'
 import Community from './pages/Community.vue'
 import AgentRun from './pages/AgentRun.vue'
@@ -20,12 +21,12 @@ import DenyModal from './components/DenyModal.vue'
 import AgentFab from './components/AgentFab.vue'
 
 /* ── 라우팅 (간이) ── */
-const pages = { home: Home, agents: Agents, tools: ToolManage, knowledge: Knowledge, perms: Permissions, community: Community, run: AgentRun, access: AccessRequest, sysmon: SysMonitor, itops: ItOps, computeruse: ComputerUse, daily: DailyReport }
+const pages = { home: Home, agents: Agents, tools: ToolManage, knowledge: Knowledge, glossary: Glossary, perms: Permissions, community: Community, run: AgentRun, access: AccessRequest, sysmon: SysMonitor, itops: ItOps, computeruse: ComputerUse, daily: DailyReport }
 const boardIds = computed(() => store.boards.map(b => b.id))
 const current = computed(() => (boardIds.value.includes(store.page) ? Community : pages[store.page] || Home))
 
 /* ── 상단 헤더에 표시할 현재 화면 타이틀 ── */
-const titleMap = { home: 'AX HUB', agents: '에이전트', tools: '툴 관리', knowledge: '지식관리', perms: '마이페이지', access: '권한 신청', run: '에이전트', sysmon: '시스템 모니터링', itops: 'IT 운영 관리', computeruse: '현황 전파', daily: '일일점검 보고서' }
+const titleMap = { home: 'AX HUB', agents: '에이전트', tools: '툴 관리', knowledge: '지식관리', glossary: '용어사전', perms: '마이페이지', access: '권한 신청', run: '에이전트', sysmon: '시스템 모니터링', itops: 'IT 운영 관리', computeruse: '현황 전파', daily: '일일점검 보고서' }
 const currentTitle = computed(() => (boardIds.value.includes(store.page) ? '라운지' : titleMap[store.page] || 'AX HUB'))
 
 /* ── LNB 메뉴 (설계서 IA 기준) ── */
@@ -43,6 +44,7 @@ const nav = computed(() => {
       ],
     },
     { key: 'knowledge', label: '지식관리', ico: 'book' },
+    { key: 'glossary', label: '용어사전', ico: 'search' },
     { key: 'community', label: '라운지', ico: 'chat', children: store.boards.map(b => ({ key: b.id, label: b.name, page: b.id })) },
     { key: 'mypage', label: '마이페이지', ico: 'users', children: mypage },
   ]

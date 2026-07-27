@@ -68,6 +68,65 @@ export const seedResources = [
   { name: 'Splunk MCP', type: 'mcp', owner: 'IT인프라팀', perm: 'none', proto: 'mcp-stdio', desc: 'Splunk 로그를 검색합니다', tags: ['dev-tools', 'data-extraction'] },
 ]
 
+// 용어사전 — AI/에이전트·보험업무·데이터·인프라 용어 (대화형 조회용 목데이터)
+//  · keys: 검색 매칭 키워드(한/영/약어)  · related: 관련 용어명
+export const glossaryTerms = [
+  // ── AI / 에이전트 ──
+  { term: 'RAG', cat: 'AI/에이전트', keys: ['rag', '검색 증강 생성', 'retrieval'], related: ['임베딩', '벡터 검색', '지식베이스'],
+    def: '검색 증강 생성(Retrieval-Augmented Generation). 질문과 관련된 문서를 먼저 검색해 근거로 삼아 LLM이 답변을 생성하는 방식. 최신·사내 지식 반영과 할루시네이션 완화에 쓰인다.' },
+  { term: 'LLM', cat: 'AI/에이전트', keys: ['llm', '대규모 언어 모델', 'language model'], related: ['프롬프트', '토큰', '파인튜닝'],
+    def: '대규모 언어 모델(Large Language Model). 방대한 텍스트로 학습해 자연어를 이해·생성하는 AI 모델. GPT·Claude 등이 해당된다.' },
+  { term: '에이전트(Agent)', cat: 'AI/에이전트', keys: ['에이전트', 'agent'], related: ['MCP', '도구', 'ABAC'],
+    def: '특정 목적을 위해 도구·지식·LLM을 조합해 작업을 자동 수행하는 AI 단위. AX-HUB에서는 에이전트가 사용하는 도구 권한을 모두 보유해야 실행할 수 있다.' },
+  { term: 'MCP', cat: 'AI/에이전트', keys: ['mcp', 'model context protocol'], related: ['에이전트(Agent)', '도구'],
+    def: 'Model Context Protocol. 문서·이슈·DB 등 외부 시스템을 표준 방식으로 LLM/에이전트에 연결하는 프로토콜. AX-HUB 툴 관리의 연결 방식(mcp-stdio/mcp-http) 중 하나.' },
+  { term: '프롬프트(Prompt)', cat: 'AI/에이전트', keys: ['프롬프트', 'prompt'], related: ['LLM', '토큰'],
+    def: 'LLM에 작업을 지시하는 입력 텍스트. 역할·맥락·요구사항·출력 형식을 명확히 담을수록 결과 품질이 높아진다.' },
+  { term: '파인튜닝(Fine-tuning)', cat: 'AI/에이전트', keys: ['파인튜닝', 'fine-tuning', '미세조정'], related: ['LLM'],
+    def: '사전학습된 모델을 특정 도메인·작업 데이터로 추가 학습시켜 성능을 맞추는 것. RAG가 “근거 주입”이라면 파인튜닝은 “모델 자체 학습”이다.' },
+  { term: '토큰(Token)', cat: 'AI/에이전트', keys: ['토큰', 'token'], related: ['LLM', '프롬프트'],
+    def: 'LLM이 텍스트를 처리하는 최소 단위(대략 단어 조각). 입력·출력 토큰 수가 사용량과 비용 산정의 기준이 된다.' },
+  { term: '할루시네이션(Hallucination)', cat: 'AI/에이전트', keys: ['할루시네이션', 'hallucination', '환각'], related: ['RAG'],
+    def: 'LLM이 사실과 다른 내용을 그럴듯하게 생성하는 현상. RAG·근거 문장 인용·출처 표기로 완화한다.' },
+  { term: '임베딩(Embedding)', cat: 'AI/에이전트', keys: ['임베딩', 'embedding', '벡터'], related: ['벡터 검색', 'RAG'],
+    def: '텍스트를 의미를 담은 고차원 벡터로 변환한 표현. 의미가 가까운 문장끼리 벡터 공간에서 가깝게 위치해 유사도 검색의 기반이 된다.' },
+  { term: '벡터 검색(Vector Search)', cat: 'AI/에이전트', keys: ['벡터 검색', 'vector search', '유사도 검색'], related: ['임베딩', 'RAG'],
+    def: '임베딩 벡터 간 유사도로 의미가 가까운 문서를 찾는 검색. 키워드 일치가 아닌 “의미” 기반이라 RAG의 핵심 요소다.' },
+  // ── 보험 / 업무 ──
+  { term: '언더라이팅(Underwriting)', cat: '보험/업무', keys: ['언더라이팅', 'underwriting', '인수심사'], related: ['손해율', '클레임'],
+    def: '보험 계약 인수 심사. 피보험자의 위험을 평가해 인수 여부·조건·보험료를 결정하는 업무.' },
+  { term: '약관', cat: '보험/업무', keys: ['약관', 'terms'], related: ['컴플라이언스'],
+    def: '보험 상품의 보장 내용·지급 조건·면책 사항을 규정한 계약 문서. 상품별로 판매중·판매중지 약관이 관리된다.' },
+  { term: '컴플라이언스(Compliance)', cat: '보험/업무', keys: ['컴플라이언스', 'compliance', '준법'], related: ['ABAC'],
+    def: '법규·감독규정·내부통제 준수. 준법감시 업무의 핵심이며 위반 시 제재 위험이 있다.' },
+  { term: '손해율', cat: '보험/업무', keys: ['손해율', 'loss ratio'], related: ['언더라이팅', '클레임'],
+    def: '수입 보험료 대비 지급 보험금 비율. 상품·계약의 수익성을 나타내는 핵심 지표.' },
+  { term: '클레임(Claim)', cat: '보험/업무', keys: ['클레임', 'claim', '보험금 청구'], related: ['언더라이팅', '손해율'],
+    def: '보험금 청구. 사고·질병 등 보험사고 발생 시 계약자가 보험금을 요구하는 것.' },
+  // ── 데이터 / RAG ──
+  { term: '지식베이스(Knowledge Base)', cat: '데이터/RAG', keys: ['지식베이스', 'knowledge base', 'kb'], related: ['컬렉션', 'RAG'],
+    def: '에이전트가 근거로 삼는 문서 집합. AX-HUB에서는 컬렉션 단위로 묶여 지식관리에서 관리된다.' },
+  { term: '컬렉션(Collection)', cat: '데이터/RAG', keys: ['컬렉션', 'collection'], related: ['지식베이스'],
+    def: '지식 문서를 주제·부서별로 묶은 단위. 지식관리 화면의 좌측 트리 노드에 해당한다.' },
+  { term: 'ABAC', cat: '데이터/RAG', keys: ['abac', '속성 기반 접근', 'attribute'], related: ['에이전트(Agent)', 'SLA'],
+    def: '속성 기반 접근 제어(Attribute-Based Access Control). 사용자·리소스의 속성으로 권한을 판정하는 방식. AX-HUB 권한 승인의 정책 기반.' },
+  { term: 'SLA', cat: '데이터/RAG', keys: ['sla', 'service level'], related: ['ABAC'],
+    def: '서비스 수준 협약(Service Level Agreement). 권한 요청 승인 기한 등 목표 처리 시간을 정의한다.' },
+  // ── 시스템 / 인프라 ──
+  { term: 'OCP', cat: '시스템/인프라', keys: ['ocp', 'openshift'], related: ['AIOps'],
+    def: 'OpenShift Container Platform. 쿠버네티스 기반 컨테이너 운영 플랫폼. 시스템 모니터링의 관제 대상 환경.' },
+  { term: 'AIOps', cat: '시스템/인프라', keys: ['aiops'], related: ['MTTD', 'MTTR', 'OCP'],
+    def: 'AI 기반 IT 운영. 로그·지표를 분석해 장애를 예측·탐지·대응한다. IT 운영 관리 콘솔의 핵심 개념.' },
+  { term: 'MTTD', cat: '시스템/인프라', keys: ['mttd', '평균 탐지'], related: ['MTTR', 'AIOps'],
+    def: '평균 탐지 시간(Mean Time To Detect). 장애 발생부터 감지까지 걸린 평균 시간. 짧을수록 좋다.' },
+  { term: 'MTTR', cat: '시스템/인프라', keys: ['mttr', '평균 복구'], related: ['MTTD', 'AIOps'],
+    def: '평균 복구 시간(Mean Time To Repair). 장애 발생부터 복구 완료까지 평균 시간. 짧을수록 좋다.' },
+  { term: 'Redaction', cat: '시스템/인프라', keys: ['redaction', '비식별', '마스킹'], related: ['컴플라이언스'],
+    def: '민감정보 비식별화. 개인정보·기밀을 가리고 전파하는 처리. 현황 전파(Computer-Use) 에이전트가 발송 전 수행한다.' },
+  { term: 'p95', cat: '시스템/인프라', keys: ['p95', '95 백분위'], related: ['AIOps'],
+    def: '95 백분위수 응답시간. 전체 요청의 95%가 이 시간 이내에 처리됨을 의미하는 성능 지표.' },
+]
+
 export const seedKnowledge = [
   { id: 'kn-01', name: '내 프로젝트 노트', desc: '개인 업무 노트·회의 메모 지식화', owner: '개인', scope: 'personal', perm: 'owner', docs: 86, linked: 1, updated: '2026-07-02', category: 'personal-note' },
   { id: 'kn-02', name: '캠페인 성과 데이터 지식', desc: '최근 3년 캠페인 리포트·지표 문서', owner: '마케팅팀', scope: 'team', perm: 'granted', docs: 430, linked: 2, updated: '2026-06-30', category: 'sales-camp' },

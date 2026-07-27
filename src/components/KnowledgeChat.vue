@@ -53,13 +53,14 @@ function send(text) {
   if (!t || busy.value || !sel.value.length) return
   msgs.value.push({ role: 'user', text: t })
   input.value = ''
-  const r = { role: 'agent', text: '', typing: true }
-  msgs.value.push(r)
+  msgs.value.push({ role: 'agent', text: '', typing: true })
+  // 반응형 배열은 인덱스로 접근해 변경해야 화면에 반영됨(로컬 객체 참조 직접 변경은 미반영)
+  const idx = msgs.value.length - 1
   const full = ragReply(t)
   setTimeout(() => {
-    r.typing = false
+    msgs.value[idx].typing = false
     let i = 0
-    const tm = setInterval(() => { i = Math.min(i + 3, full.length); r.text = full.slice(0, i); if (i >= full.length) clearInterval(tm) }, 26)
+    const tm = setInterval(() => { i = Math.min(i + 3, full.length); msgs.value[idx].text = full.slice(0, i); if (i >= full.length) clearInterval(tm) }, 26)
   }, 500)
 }
 watch(() => msgs.value.map(m => m.text).join('|'), async () => {
