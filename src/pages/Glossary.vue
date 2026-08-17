@@ -1,234 +1,220 @@
 <script setup>
 /**
- * 용어사전 — 대화형 용어 조회 (메인 메뉴) · [담당: 개발자 B]
+ * 용어사전 — 사전형 화면 · [담당: 개발자 B]
  * -----------------------------------------------------------------------------
- * My Agent 실행(대화) 화면과 동일한 레이아웃으로, 용어를 채팅으로 조회한다.
- *  좌: 조회 이력(세션 목록)  ┃  중: 대화창(용어 질의·응답)  ┃  우: 카테고리·자주 찾는 용어
- * 자체 로컬 상태로 동작(에이전트 대화 store 와 분리). 답변은 glossaryTerms 목데이터 기반.
+ * 용어 검색 + 초성(가나다)·알파벳(ABC) 인덱스 → 목록(용어·약어·유의어·정의·관련용어).
+ * 용어 등록/신청 기능(관리자 승인 시 사전에 등록).
  */
-import { ref, computed, nextTick, watch } from 'vue'
-import { glossaryTerms } from '../data.js'
+import { ref, computed, onMounted, nextTick } from 'vue'
+import { store } from '../store.js'
 import Icon from '../components/Icon.vue'
+import GlossaryTermModal from '../components/GlossaryTermModal.vue'
 
-const terms = glossaryTerms
-const input = ref('')
-const scrollEl = ref(null)
-const showInsight = ref(true)
-const chatQ = ref('')            // 이력 검색어
-const menuFor = ref(null)        // 열린 항목 메뉴
+const q = ref('')
+const idx = ref('all')       // 'all' | 초성(가~하) | 알파벳(A~Z) | '#'
+const regModal = ref(false)
+const searchInput = ref(null)
 
-// 카테고리별 개수
-const cats = computed(() => {
-  const m = new Map()
-  terms.forEach(t => m.set(t.cat, (m.get(t.cat) || 0) + 1))
-  return [...m.entries()].map(([name, n]) => ({ name, n }))
+const isAdmin = computed(() => store.role === 'admin')
+const pending = computed(() => store.glossaryRequests)
+const synOf = t => (t.syn && t.syn.length ? t.syn : (t.keys || []))
+
+// 용어 승인은 마이페이지 승인함에서 처리 → 이동
+function goApprove() { store.page = 'perms'; store.permsView = 'approve' }
+
+// ── 초성/알파벳 인덱스 ─────────────────────────────
+const CHO = ['가', '나', '다', '라', '마', '바', '사', '아', '자', '차', '카', '타', '파', '하']
+const ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+// 19 초성(ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ) → 대표 음절(가나다…)
+const CHO_MAP = ['가', '가', '나', '다', '다', '라', '마', '바', '바', '사', '사', '아', '자', '자', '차', '카', '타', '파', '하']
+function initialOf(name) {
+  const c = (name || '').trim().charCodeAt(0)
+  if (c >= 0xAC00 && c <= 0xD7A3) return CHO_MAP[Math.floor((c - 0xAC00) / 588)]
+  if ((c >= 65 && c <= 90) || (c >= 97 && c <= 122)) return name[0].toUpperCase()
+  return '#'
+}
+const counts = computed(() => {
+  const m = {}
+  store.glossary.forEach(t => { const g = initialOf(t.term); m[g] = (m[g] || 0) + 1 })
+  return m
 })
-// 자주 찾는 용어(추천/인기)
-const popular = ['RAG', 'LLM', '에이전트(Agent)', 'MCP', '언더라이팅(Underwriting)', 'ABAC']
+const alphaPresent = computed(() => ALPHA.filter(g => counts.value[g]))
+const hasHash = computed(() => counts.value['#'] > 0)
 
-// ── 용어 매칭 & 답변 생성 ─────────────────────────
-function findTerms(q) {
-  const s = q.toLowerCase().replace(/\s/g, '')
-  if (!s) return []
-  return terms.filter(t => {
-    const hay = [t.term, ...(t.keys || [])].map(x => x.toLowerCase().replace(/\s/g, ''))
-    return hay.some(h => h && (s.includes(h) || (s.length >= 2 && h.includes(s))))
-  })
-}
-function answerFor(matches, q) {
-  if (matches.length === 1) {
-    const t = matches[0]
-    const lines = [`📖 ${t.term}   ·   ${t.cat}`, ``, t.def]
-    if (t.related?.length) lines.push('', `관련 용어: ${t.related.join(' · ')}`)
-    return lines.join('\n')
+// ── 검색 + 인덱스 필터 ─────────────────────────────
+const list = computed(() => {
+  const s = q.value.trim().toLowerCase().replace(/\s/g, '')
+  let base = store.glossary
+  if (s) {
+    base = base.filter(t => (t.term + synOf(t).join('') + (t.abbr || '') + (t.def || '')).toLowerCase().replace(/\s/g, '').includes(s))
+  } else if (idx.value !== 'all') {
+    base = base.filter(t => initialOf(t.term) === idx.value)
   }
-  if (matches.length > 1) {
-    return [
-      `'${q}'와(과) 관련된 용어 ${matches.length}건을 찾았습니다.`, ``,
-      ...matches.slice(0, 6).map(t => `· ${t.term} — ${t.def.slice(0, 42)}…`), ``,
-      `정확한 용어명을 입력하면 상세 설명을 보여드립니다.`,
-    ].join('\n')
-  }
-  return [
-    `'${q}' 용어를 사전에서 찾지 못했습니다.`, ``,
-    `다른 표현으로 검색하거나, 아래 자주 찾는 용어를 참고하세요:`,
-    popular.join(' · '),
-  ].join('\n')
-}
-
-// ── 조회 이력(세션) ───────────────────────────────
-let gseq = 1
-function mkSession(termName, when) {
-  const t = terms.find(x => x.term === termName)
-  return { id: 'gs-' + (gseq++), title: t.term, when, msgs: [
-    { role: 'user', text: `${t.term} 뜻이 뭐야?` },
-    { role: 'agent', text: answerFor([t], t.term) },
-  ] }
-}
-// 시연용 이력 시드
-const sessions = ref([mkSession('RAG', '어제'), mkSession('언더라이팅(Underwriting)', '2일 전')])
-const currentId = ref(null)      // null = 새 조회(웰컴)
-const cur = computed(() => sessions.value.find(s => s.id === currentId.value) || null)
-const msgs = computed(() => cur.value?.msgs || [])
-const busy = computed(() => msgs.value.some(m => m.typing))
-
-const filteredHistory = computed(() => {
-  const q = chatQ.value.trim()
-  return q ? sessions.value.filter(s => s.title.includes(q)) : sessions.value
+  return base.slice().sort((a, b) => a.term.localeCompare(b.term, 'ko'))
 })
+// 검색어·색인을 넣으면 검색창으로 스크롤해 다음 검색을 바로 이어갈 수 있게 한다.
+function scrollTop() { nextTick(() => document.querySelector('.gl')?.scrollIntoView({ behavior: 'smooth', block: 'start' })) }
+function focusSearch() { nextTick(() => searchInput.value?.focus({ preventScroll: true })) }
 
-function startNew() { currentId.value = null; input.value = ''; menuFor.value = null }
-function selectSession(id) { currentId.value = id }
-function toggleMenu(id) { menuFor.value = menuFor.value === id ? null : id }
-function renameSession(s) {
-  const t = window.prompt('이력 제목을 입력하세요', s.title)
-  if (t !== null && t.trim()) s.title = t.trim()
-  menuFor.value = null
-}
-function removeSession(s) {
-  if (window.confirm(`'${s.title}' 조회 이력을 삭제할까요?`)) {
-    const i = sessions.value.findIndex(x => x.id === s.id)
-    if (i >= 0) sessions.value.splice(i, 1)
-    if (currentId.value === s.id) currentId.value = null
-  }
-  menuFor.value = null
-}
+const filtered = computed(() => !!q.value || idx.value !== 'all') // 필터 활성 여부
 
-function send(text) {
-  const t = (text ?? input.value).trim()
-  if (!t || busy.value) return
-  // 세션 없으면 새로 생성(제목 = 매칭 용어명 or 질의)
-  if (!cur.value) {
-    const first = findTerms(t)[0]
-    const s = { id: 'gs-' + (gseq++), title: (first?.term || t).slice(0, 24), when: '방금', msgs: [] }
-    sessions.value.unshift(s)
-    currentId.value = s.id
-  }
-  const s = cur.value
-  s.msgs.push({ role: 'user', text: t })
-  input.value = ''
-  const full = answerFor(findTerms(t), t)
-  s.msgs.push({ role: 'agent', text: '', typing: true })
-  // 반응형 배열은 인덱스로 접근해 변경해야 화면에 반영됨(로컬 객체 참조 직접 변경은 미반영)
-  const idx = s.msgs.length - 1
-  setTimeout(() => {
-    s.msgs[idx].typing = false
-    let i = 0
-    const tm = setInterval(() => {
-      i = Math.min(i + 3, full.length)
-      s.msgs[idx].text = full.slice(0, i)
-      if (i >= full.length) clearInterval(tm)
-    }, 20)
-  }, 400)
-}
+/** 전체 보기로 초기화 + 검색창 포커스 → 곧바로 새 용어를 검색 */
+function reset() { q.value = ''; idx.value = 'all'; scrollTop(); focusSearch() }
+function pickIndex(g) { idx.value = idx.value === g ? 'all' : g; q.value = '' }
+function searchTerm(t) { q.value = t; idx.value = 'all'; scrollTop() }
 
-watch(() => msgs.value.map(m => m.text).join('|'), async () => {
-  await nextTick(); if (scrollEl.value) scrollEl.value.scrollTop = scrollEl.value.scrollHeight
-})
+onMounted(() => focusSearch()) // 진입 시 바로 검색 가능
 </script>
 
 <template>
-  <div>
-    <div class="run-head">
-      <div class="run-crumb"><Icon name="search" :size="16" style="vertical-align:-3px;margin-right:6px" />용어사전</div>
-      <span style="flex:1"></span>
-      <span class="gl-count">{{ terms.length }}개 용어 · {{ cats.length }}개 분류</span>
-      <button class="btn btn-primary btn-sm" @click="startNew"><Icon name="plus" :size="14" /> 새 조회</button>
-      <button class="btn btn-ghost btn-sm" @click="showInsight = !showInsight" :aria-pressed="showInsight"
-        :title="showInsight ? '분류 숨기기' : '분류 보기'"><Icon name="list" :size="14" /> {{ showInsight ? '분류 숨기기' : '분류 보기' }}</button>
+  <div class="gl">
+    <!-- 검색 + 등록 -->
+    <div class="gl-top">
+      <div class="gl-search">
+        <Icon name="search" :size="18" />
+        <input ref="searchInput" v-model="q" placeholder="용어를 입력해 검색 (용어·유의어·약어)" aria-label="용어 검색"
+               @keydown.esc="reset()" />
+        <button v-if="q" class="gl-search-x" @click="q = ''; focusSearch()" aria-label="검색어 지우기"><Icon name="x" :size="14" /></button>
+      </div>
+      <button v-if="filtered" class="btn btn-ghost gl-reset" @click="reset()"><Icon name="back" :size="14" /> 전체 보기</button>
+      <span v-else class="gl-count">{{ store.glossary.length }}개 용어</span>
+      <button class="btn btn-primary" @click="regModal = true"><Icon name="plus" :size="14" /> 용어 등록</button>
     </div>
 
-    <div class="run-layout" :class="{ 'no-insight': !showInsight }">
-      <!-- ① 조회 이력 -->
-      <aside class="chat-side">
-        <div class="cs-head">
-          <button class="btn btn-primary btn-sm cs-new" @click="startNew"><Icon name="plus" :size="15" /> 새 조회</button>
-        </div>
-        <div class="cs-scroll">
-          <div class="search cs-search"><Icon name="search" :size="15" /><input v-model="chatQ" placeholder="조회 이력 검색" aria-label="조회 이력 검색" /></div>
-          <div class="cs-list" v-if="filteredHistory.length">
-            <div v-for="s in filteredHistory" :key="s.id" class="cs-item" :class="{ on: s.id === currentId }" @click="selectSession(s.id)">
-              <div class="cs-item-body">
-                <div class="cs-title">{{ s.title }}</div>
-                <div class="cs-when">{{ s.when }} · {{ s.msgs.filter(m => m.role === 'user').length }}회 질의</div>
-              </div>
-              <button class="cs-kebab" @click.stop="toggleMenu(s.id)" aria-label="이력 메뉴" title="이력 메뉴"><Icon name="dots" :size="16" /></button>
-              <div class="cs-menu" v-if="menuFor === s.id" @click.stop>
-                <button @click="renameSession(s)"><Icon name="edit" :size="13" /> 이름 변경</button>
-                <button class="danger" @click="removeSession(s)"><Icon name="trash" :size="13" /> 삭제</button>
-              </div>
-            </div>
-          </div>
-          <div class="cs-empty" v-else>
-            <div class="cs-empty-ic"><Icon name="search" :size="26" /></div>
-            <b>조회 이력이 없습니다</b>
-            <span>용어를 입력해 조회를 시작하거나<br>검색어를 바꿔보세요</span>
-          </div>
-        </div>
-        <div v-if="menuFor" class="cs-menu-scrim" @click="menuFor = null"></div>
-      </aside>
+    <!-- 등록 신청 안내 (승인은 마이페이지 승인함에서 처리) -->
+    <div v-if="pending.length" class="gl-pending-hint">
+      <Icon name="book" :size="13" />
+      용어 등록 신청 {{ pending.length }}건이 승인 대기 중입니다.
+      <button v-if="isAdmin" class="gl-hint-link" @click="goApprove">승인함에서 처리 <Icon name="arrow" :size="12" /></button>
+    </div>
 
-      <!-- ② 대화창 -->
-      <div class="card chat-card">
-        <div class="chat-header">
-          <div class="sq sq-navy sq-sm"><Icon name="book" :size="15" /></div>
-          <div class="ch-info">
-            <div class="ch-name">용어사전 도우미</div>
-            <div class="ch-desc">AI·보험·데이터·인프라 용어를 대화로 조회합니다</div>
-          </div>
-        </div>
+    <!-- 초성 · 알파벳 인덱스 -->
+    <div class="gl-index" role="group" aria-label="색인">
+      <button class="gl-idx" :class="{ on: idx === 'all' }" @click="idx = 'all'; q = ''">전체</button>
+      <button v-for="g in CHO" :key="g" class="gl-idx ko" :class="{ on: idx === g, dim: !counts[g] }" :disabled="!counts[g]" @click="pickIndex(g)">{{ g }}</button>
+      <span class="gl-idx-sep"></span>
+      <button v-for="g in alphaPresent" :key="g" class="gl-idx" :class="{ on: idx === g }" @click="pickIndex(g)">{{ g }}</button>
+      <button v-if="hasHash" class="gl-idx" :class="{ on: idx === '#' }" @click="pickIndex('#')">#</button>
+    </div>
 
-        <!-- 대화 있음 -->
-        <div class="chat-scroll" ref="scrollEl" v-if="cur">
-          <div v-for="(m, i) in msgs" :key="i" class="msg" :class="m.role">
-            <div v-if="m.role === 'agent'" class="sq sq-navy sq-sm"><Icon name="book" :size="14" /></div>
-            <div class="msg-col">
-              <div class="bubble">
-                <span v-if="m.typing" class="typing" aria-label="조회 중"><i></i><i></i><i></i></span>
-                <template v-else>{{ m.text }}</template>
-              </div>
-            </div>
-          </div>
-        </div>
+    <!-- 결과 헤더 -->
+    <div class="gl-result-head">
+      <span>{{ q ? `‘${q}’ 검색 결과` : (idx === 'all' ? '전체 용어' : `‘${idx}’ 색인`) }}</span>
+      <span class="gl-result-n">{{ list.length }}건</span>
+      <button v-if="filtered" class="gl-reset-link" @click="reset()"><Icon name="x" :size="12" /> 초기화</button>
+    </div>
 
-        <!-- 웰컴(새 조회) -->
-        <div class="chat-scroll chat-welcome" v-else>
-          <div class="sq sq-navy sq-lg cw-ic"><Icon name="book" :size="26" /></div>
-          <div class="cw-title">무슨 용어가 궁금하세요?</div>
-          <div class="cw-desc">용어명을 입력하면 뜻·분류·관련 용어를 알려드립니다.</div>
-          <div class="cw-hint">아래 자주 찾는 용어로 바로 시작할 수 있어요.</div>
-          <div class="cw-chips">
-            <button v-for="s in popular" :key="s" class="chip" @click="send(s)">{{ s }}</button>
+    <!-- 용어 목록 (사전 엔트리) -->
+    <div class="gl-list" v-if="list.length">
+      <div v-for="t in list" :key="t.term" class="gl-entry">
+        <span class="gl-entry-initial">{{ initialOf(t.term) }}</span>
+        <div class="gl-entry-body">
+          <div class="gl-entry-head">
+            <span class="gl-term">{{ t.term }}</span>
+            <span v-if="t.isNew" class="gl-new">NEW</span>
+            <span v-if="t.abbr" class="gl-abbr">약어 {{ t.abbr }}</span>
+            <span class="gl-cat">{{ t.cat }}</span>
           </div>
-        </div>
-
-        <!-- 입력 -->
-        <div class="chat-input">
-          <input v-model="input" placeholder="용어를 입력하세요 (예: RAG, 언더라이팅, MTTR)" aria-label="용어 입력"
-            @keydown.enter="send()" :disabled="busy" />
-          <button class="send-btn" :disabled="busy || !input.trim()" @click="send()" aria-label="조회"><Icon name="send" :size="17" /></button>
+          <div class="gl-syn" v-if="synOf(t).length">
+            <span class="gl-syn-label">유의어·동의어</span>
+            <button v-for="s in synOf(t)" :key="s" class="gl-syn-chip" @click="searchTerm(s)">{{ s }}</button>
+          </div>
+          <div class="gl-def">{{ t.def }}</div>
+          <div class="gl-related" v-if="t.related && t.related.length">
+            <span class="gl-rel-label">관련 용어</span>
+            <button v-for="r in t.related" :key="r" class="gl-rel" @click="searchTerm(r)">{{ r }}</button>
+          </div>
         </div>
       </div>
-
-      <!-- ③ 카테고리 · 자주 찾는 용어 -->
-      <aside class="insight" v-if="showInsight">
-        <div class="card insight-card">
-          <div class="insight-title">용어 분류</div>
-          <div v-for="c in cats" :key="c.name" class="insight-row"><span class="k">{{ c.name }}</span><span class="v">{{ c.n }}개</span></div>
-        </div>
-        <div class="card insight-card">
-          <div class="insight-title">자주 찾는 용어</div>
-          <div class="gl-terms">
-            <button v-for="t in popular" :key="t" class="chip" @click="send(t)">{{ t }}</button>
-          </div>
-        </div>
-      </aside>
     </div>
+    <div v-else class="card empty gl-empty">
+      <b>‘{{ q || idx }}’에 해당하는 용어가 없습니다</b>
+      <span>다른 검색어·색인을 선택하거나, 새 용어를 등록해 보세요.</span>
+      <div class="gl-empty-act">
+        <button class="btn btn-ghost btn-sm" @click="reset()"><Icon name="back" :size="13" /> 전체 보기</button>
+        <button class="btn btn-primary btn-sm" @click="regModal = true"><Icon name="plus" :size="13" /> 용어 등록</button>
+      </div>
+    </div>
+
+    <!-- 용어 등록/신청 -->
+    <GlossaryTermModal v-if="regModal" @close="regModal = false" />
   </div>
 </template>
 
 <style scoped>
-.gl-count { font-size: 12px; color: var(--gray-lt); font-weight: 650; margin-right: 4px; }
-.gl-terms { display: flex; flex-wrap: wrap; gap: 6px; }
-.gl-terms .chip { padding: 5px 11px; font-size: 11.5px; }
+.gl { width: 100%; }
+.gl-top { display: flex; align-items: center; gap: 12px; margin: 4px 0 16px; }
+.gl-search { flex: 1; display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 16px;
+  border: 1px solid var(--line-strong); border-radius: 13px; background: var(--card); box-shadow: var(--shadow); }
+.gl-search:focus-within { border-color: var(--navy); box-shadow: var(--ring); }
+.gl-search svg { color: var(--gray-lt); flex-shrink: 0; }
+.gl-search input { flex: 1; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 15px; }
+.gl-search-x { border: 0; background: transparent; color: var(--gray-lt); cursor: pointer; display: grid; place-items: center; }
+.gl-search-x:hover { color: var(--ink); }
+.gl-count { font-size: 12.5px; font-weight: 700; color: var(--gray-lt); white-space: nowrap; }
+
+/* 등록 신청 안내 (승인은 마이페이지 승인함) */
+.gl-pending-hint { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--gray); background: var(--canvas);
+  border: 1px solid var(--line); border-radius: 9px; padding: 8px 12px; margin-bottom: 16px; }
+.gl-pending-hint svg { color: var(--navy-lt); }
+.gl-hint-link { display: inline-flex; align-items: center; gap: 3px; margin-left: auto; font-size: 12px; font-weight: 750;
+  color: var(--navy); background: transparent; border: 0; cursor: pointer; }
+.gl-hint-link:hover { text-decoration: underline; }
+.gl-hint-link svg { color: var(--navy); }
+
+/* 인덱스 */
+.gl-index { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 12px; border: 1px solid var(--line);
+  border-radius: var(--r-md); background: var(--card); margin-bottom: 16px; }
+.gl-idx { min-width: 30px; height: 30px; padding: 0 8px; border: 1px solid transparent; border-radius: 8px; background: transparent;
+  color: var(--gray); font-size: 13px; font-weight: 750; cursor: pointer; transition: .12s; }
+.gl-idx.ko { font-weight: 800; }
+.gl-idx:hover:not(:disabled) { background: var(--canvas); color: var(--ink); }
+.gl-idx.on { background: var(--navy); border-color: var(--navy); color: #fff; }
+.gl-idx.dim { color: var(--line-strong); cursor: default; }
+.gl-idx-sep { width: 1px; height: 20px; background: var(--line-strong); margin: 0 6px; }
+
+/* 상단 전체보기(초기화) 버튼 */
+.gl-reset { flex-shrink: 0; white-space: nowrap; }
+
+/* 결과 헤더 */
+.gl-result-head { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 800; color: var(--ink); margin-bottom: 10px; }
+.gl-result-n { font-size: 12px; font-weight: 700; color: var(--gray-lt); }
+.gl-reset-link { display: inline-flex; align-items: center; gap: 3px; margin-left: auto; font-size: 12px; font-weight: 750;
+  color: var(--navy); background: var(--navy-soft); border: 1px solid rgba(0,70,255,.14); border-radius: 999px;
+  padding: 3px 11px; cursor: pointer; transition: .12s; }
+.gl-reset-link:hover { background: var(--navy); color: #fff; }
+
+/* 결과 없음 */
+.gl-empty { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.gl-empty span { color: var(--gray); font-size: 12.5px; }
+.gl-empty-act { display: flex; gap: 8px; margin-top: 12px; }
+
+/* 사전 엔트리 — 넓은 화면에서는 여러 열로 채운다 */
+.gl-list { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: start; }
+@media (min-width: 1180px) { .gl-list { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1720px) { .gl-list { grid-template-columns: repeat(3, 1fr); } }
+.gl-entry { display: flex; gap: 14px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--card);
+  box-shadow: var(--shadow); padding: 16px 18px; }
+.gl-entry-initial { flex-shrink: 0; width: 36px; height: 36px; border-radius: 10px; background: var(--navy-soft);
+  color: var(--navy); font-size: 16px; font-weight: 850; display: grid; place-items: center; }
+.gl-entry-body { flex: 1; min-width: 0; }
+.gl-entry-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.gl-term { font-size: 16px; font-weight: 850; color: var(--ink); letter-spacing: -.3px; }
+.gl-new { font-size: 9.5px; font-weight: 800; color: #fff; background: var(--green); border-radius: 5px; padding: 1px 6px; }
+.gl-abbr { font-size: 11px; font-weight: 750; color: var(--accent-ink); background: var(--accent-bg); border-radius: 6px; padding: 2px 8px; }
+.gl-cat { font-size: 11px; font-weight: 700; color: var(--gray); background: var(--canvas); border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; }
+.gl-syn { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.gl-syn-label { font-size: 11px; font-weight: 800; color: var(--navy); margin-right: 2px; }
+.gl-syn-chip { font-size: 11.5px; font-weight: 650; color: var(--navy); background: var(--navy-soft); border: 1px solid rgba(0,70,255,.14);
+  border-radius: 999px; padding: 3px 10px; cursor: pointer; transition: .12s; }
+.gl-syn-chip:hover { background: var(--navy); color: #fff; }
+.gl-syn-chip.static { cursor: default; }
+.gl-def { font-size: 13.5px; color: var(--ink); line-height: 1.65; margin-top: 10px; }
+.gl-related { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 11px; padding-top: 11px; border-top: 1px dashed var(--line); }
+.gl-rel-label { font-size: 11px; font-weight: 800; color: var(--gray-lt); margin-right: 2px; }
+.gl-rel { font-size: 11.5px; font-weight: 650; color: var(--gray); background: var(--card); border: 1px solid var(--line-strong);
+  border-radius: 7px; padding: 3px 9px; cursor: pointer; transition: .12s; }
+.gl-rel:hover { border-color: var(--navy); color: var(--navy); }
+
+@media (max-width: 720px) { .gl-top { flex-wrap: wrap; } .gl-search { order: 3; flex-basis: 100%; } }
 </style>

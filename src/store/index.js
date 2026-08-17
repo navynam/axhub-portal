@@ -15,3 +15,7 @@ export * from './modules/conversation' // openRun, newConversation, selectConver
 export * from './modules/report'       // submitReport, startReportProgress, replyReport, resolveReport, cancelReport, reportCatLabel/StatusLabel/StatusCls
 export * from './modules/meta'         // permMeta, scopeTabs
 export * from './modules/keys'         // KEY_TYPES, keyTypeMeta, maskKey, addKey, removeKey
+export * from './modules/knowledgeReq' // 지식요청·문서등록: submit/comment/status/cancel/register/approve + 라벨
+export * from './modules/glossary'     // 용어사전: submit/approve/reject/cancel/parseSyn
+export * from './modules/docs'         // 문서→지식 파이프라인: submit/approve/reject (문서·지식) + 라벨/스테이지
+export * from './modules/admin'        // 권한 관리: 지식 그룹 생성/이동, 에이전트/지식 담당자 변경, MANAGER_CANDIDATES

@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { store, go } from './store.js'
+import { store, go, setTheme } from './store.js'
 import Icon from './components/Icon.vue'
 import SettingsModal from './components/SettingsModal.vue'
 import Home from './pages/Home.vue'
@@ -16,18 +16,23 @@ import ItOps from './pages/ItOps.vue'
 import ComputerUse from './pages/ComputerUse.vue'
 import DailyReport from './pages/DailyReport.vue'
 import ToolManage from './pages/ToolManage.vue'
+import DocManage from './pages/DocManage.vue'
+import KnowledgeReg from './pages/KnowledgeReg.vue'
+import GroupManage from './pages/GroupManage.vue'
+import AgentOwners from './pages/AgentOwners.vue'
+import KnowledgeOwners from './pages/KnowledgeOwners.vue'
 import RequestModal from './components/RequestModal.vue'
 import DenyModal from './components/DenyModal.vue'
-import AgentFab from './components/AgentFab.vue'
+import HubRail from './components/HubRail.vue'
 
 /* ── 라우팅 (간이) ── */
-const pages = { home: Home, agents: Agents, tools: ToolManage, knowledge: Knowledge, glossary: Glossary, perms: Permissions, community: Community, run: AgentRun, access: AccessRequest, sysmon: SysMonitor, itops: ItOps, computeruse: ComputerUse, daily: DailyReport }
+const pages = { home: Home, agents: Agents, tools: ToolManage, docs: DocManage, knreg: KnowledgeReg, knowledge: Knowledge, glossary: Glossary, perms: Permissions, community: Community, run: AgentRun, access: AccessRequest, sysmon: SysMonitor, itops: ItOps, computeruse: ComputerUse, daily: DailyReport, groups: GroupManage, agentowners: AgentOwners, knowledgeowners: KnowledgeOwners }
 const boardIds = computed(() => store.boards.map(b => b.id))
 const current = computed(() => (boardIds.value.includes(store.page) ? Community : pages[store.page] || Home))
 
 /* ── 상단 헤더에 표시할 현재 화면 타이틀 ── */
-const titleMap = { home: 'AX HUB', agents: '에이전트', tools: '툴 관리', knowledge: '지식관리', glossary: '용어사전', perms: '마이페이지', access: '권한 신청', run: '에이전트', sysmon: '시스템 모니터링', itops: 'IT 운영 관리', computeruse: '현황 전파', daily: '일일점검 보고서' }
-const currentTitle = computed(() => (boardIds.value.includes(store.page) ? '라운지' : titleMap[store.page] || 'AX HUB'))
+const titleMap = { home: 'AX HUB', agents: '에이전트', tools: '도구', docs: '문서 관리', knreg: '지식 관리', knowledge: '지식 검색', glossary: '용어사전', perms: '마이페이지', access: '권한 신청', run: '에이전트', sysmon: '시스템 모니터링', itops: 'IT 운영 관리', computeruse: '현황 전파', daily: '일일점검 보고서', groups: '그룹 관리', agentowners: '에이전트 담당자 관리', knowledgeowners: '지식 담당자 관리' }
+const currentTitle = computed(() => (boardIds.value.includes(store.page) ? '커뮤니티' : titleMap[store.page] || 'AX HUB'))
 
 /* ── LNB 메뉴 (설계서 IA 기준) ── */
 const nav = computed(() => {
@@ -37,21 +42,30 @@ const nav = computed(() => {
 
   const menu = [
     { key: 'home', label: '홈', ico: 'home' },
+    { key: 'agents', label: '에이전트', ico: 'agent', also: ['run'] },
+    { key: 'knowledge', label: '지식', ico: 'book', also: ['knowledge'] },
+    { key: 'tools', label: '도구', ico: 'tool' },
+    { key: 'glossary', label: '용어사전', ico: 'search' },
+    { key: 'community', label: '커뮤니티', ico: 'chat', children: store.boards.map(b => ({ key: b.id, label: b.name, page: b.id })) },
+    { key: 'mypage', label: '마이페이지', ico: 'shield', children: mypage },
     {
-      key: 'agents', label: '에이전트', ico: 'bot', children: [
-        { key: 'agents-cat', label: '에이전트 카탈로그', page: 'agents', also: ['run'] },
-        { key: 'tools', label: '툴 관리', page: 'tools' },
+      key: 'manage', label: '문서/지식 관리', ico: 'layers', children: [
+        { key: 'docs', label: '문서 관리', page: 'docs' },
+        { key: 'knreg', label: '지식 관리', page: 'knreg' },
       ],
     },
-    { key: 'knowledge', label: '지식관리', ico: 'book' },
-    { key: 'glossary', label: '용어사전', ico: 'search' },
-    { key: 'community', label: '라운지', ico: 'chat', children: store.boards.map(b => ({ key: b.id, label: b.name, page: b.id })) },
-    { key: 'mypage', label: '마이페이지', ico: 'users', children: mypage },
+    {
+      key: 'authmgmt', label: '권한 관리', ico: 'users', children: [
+        { key: 'groups', label: '그룹 관리', page: 'groups' },
+        { key: 'agentowners', label: '에이전트 담당자 관리', page: 'agentowners' },
+        { key: 'knowledgeowners', label: '지식 담당자 관리', page: 'knowledgeowners' },
+      ],
+    },
   ]
   // 관리자 전용: 시스템 관리 (시스템 모니터링 / IT 운영 관리)
   if (store.role === 'admin') {
     menu.push({
-      key: 'system', label: '시스템 관리', ico: 'gear', children: [
+      key: 'system', label: '시스템 관리', ico: 'grid', children: [
         { key: 'sysmon', label: '시스템 모니터링', page: 'sysmon' },
         { key: 'itops', label: 'IT 운영 관리', page: 'itops' },
         { key: 'computeruse', label: '현황 전파', page: 'computeruse' },
@@ -96,26 +110,21 @@ const navCollapsed = ref(false)
 const showSettings = ref(false)
 watch(() => store.theme, t => document.documentElement.setAttribute('data-theme', t), { immediate: true })
 
-/* ── 사이드바 추천 자료 (빈 공간 채우기 · 접으면 아이콘화) ── */
-const recos = [
-  { ico: 'book', title: 'AX 활용 가이드', desc: '에이전트 시작하기', to: 'community' },
-  { ico: 'star', title: '이달의 추천 Agent', desc: '규정·컴플라이언스', to: 'agents' },
-  { ico: 'shield', title: '권한 신청 방법', desc: '도구·지식 권한 안내', to: 'access' },
-  { ico: 'chat', title: '자주 묻는 질문', desc: 'FAQ · 문의 게시판', to: 'community' },
-]
+/* ── 라이트/다크 테마 토글 (LNB 하단) ── */
+const isDark = computed(() => store.theme === 'dark')
 </script>
 
 <template>
   <div class="app" :class="{ 'nav-collapsed': navCollapsed }">
     <!-- 좌측 메뉴 (LNB) -->
     <aside class="sidebar">
-      <!-- 상단: 신한라이프 로고 + 접기 버튼 -->
+      <!-- 상단: 패널 버튼 + AX Portal 로고 -->
       <div class="side-head">
-        <div class="side-logo"><span class="sh">S</span><span class="side-logo-txt">신한<b>라이프</b></span></div>
         <button class="side-collapse" @click="navCollapsed = !navCollapsed"
           :aria-label="navCollapsed ? '메뉴 펼치기' : '메뉴 접기'" :title="navCollapsed ? '메뉴 펼치기' : '메뉴 접기'">
-          <Icon :name="navCollapsed ? 'expand' : 'collapse'" :size="18" />
+          <Icon name="panel" :size="18" />
         </button>
+        <p class="side-logo"><span class="ax">AX</span> Portal</p>
       </div>
 
       <nav class="side-nav" aria-label="주 메뉴">
@@ -137,13 +146,10 @@ const recos = [
         </div>
       </nav>
 
-      <!-- 추천 자료 (접으면 아이콘만) -->
-      <div class="side-reco">
-        <div class="side-reco-title">추천 자료</div>
-        <button v-for="r in recos" :key="r.title" class="reco-item" @click="go(r.to)" :title="r.title">
-          <span class="reco-ic"><Icon :name="r.ico" :size="16" /></span>
-          <span class="reco-body"><b>{{ r.title }}</b><small>{{ r.desc }}</small></span>
-        </button>
+      <!-- 하단: 라이트/다크 테마 토글 -->
+      <div class="side-theme" role="group" aria-label="테마 전환">
+        <button :class="{ on: !isDark }" @click="setTheme('default')" title="라이트 모드"><Icon name="sun" :size="16" /><span>라이트</span></button>
+        <button :class="{ on: isDark }" @click="setTheme('dark')" title="다크 모드"><Icon name="moon" :size="16" /><span>다크</span></button>
       </div>
     </aside>
 
@@ -166,14 +172,15 @@ const recos = [
         </div>
       </header>
 
-      <div class="content-scroll">
+      <div class="content-scroll" :class="{ 'is-home': store.page === 'home', 'is-run': store.page === 'run', 'is-fill': store.knChatOpen }">
         <div class="content-inner">
           <component :is="current" />
         </div>
       </div>
     </main>
 
-    <AgentFab v-if="!['sysmon', 'itops', 'computeruse', 'daily'].includes(store.page)" />
+    <!-- 우측 허브 레일 (플로팅 버튼 대체) -->
+    <HubRail v-if="!['sysmon', 'itops', 'computeruse', 'daily'].includes(store.page)" />
 
     <RequestModal v-if="store.modal" />
     <DenyModal v-if="store.denyModal" />

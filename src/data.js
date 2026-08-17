@@ -1,6 +1,18 @@
 // AX-HUB 사용자 포털 — 목업 데이터
 // perm: 'owner'(내 소유) | 'granted'(사용중) | 'pending'(요청중) | 'none'(권한없음) | 'denied'(반려) | 'expired'(만료)
 
+// 조직도(담당자 조회용) — 담당자 변경 팝업: 왼쪽 조직 / 오른쪽 담당자
+export const orgDirectory = [
+  { org: 'AX추진팀', staff: [{ name: '김지훈', title: '팀장' }, { name: '나은지', title: '선임' }, { name: '도현우', title: '주임' }] },
+  { org: '디지털전략팀', staff: [{ name: '이서연', title: '파트장' }, { name: '문가영', title: '선임' }] },
+  { org: '심사부', staff: [{ name: '박민수', title: '부장' }, { name: '조현아', title: '과장' }, { name: '임재훈', title: '대리' }] },
+  { org: '마케팅부', staff: [{ name: '최유진', title: '팀장' }, { name: '한지원', title: '선임' }] },
+  { org: '상품개발부', staff: [{ name: '정우성', title: '부장' }, { name: '배수아', title: '과장' }] },
+  { org: '재무기획팀', staff: [{ name: '오지원', title: '팀장' }, { name: '신동혁', title: '대리' }] },
+  { org: '준법감시부', staff: [{ name: '윤도현', title: '부장' }, { name: '권나라', title: '과장' }] },
+  { org: '고객서비스부', staff: [{ name: '강태석', title: '팀장' }, { name: '서지민', title: '선임' }, { name: '홍서준', title: '주임' }] },
+]
+
 export const seedAgents = [
   { id: 'ag-01', name: '내 업무 요약 Agent', desc: '메일·일정·문서를 모아 하루 업무 브리핑을 생성합니다.', owner: '개인', scope: 'personal', perm: 'owner', active: true, knowledge: 1, runs: 42, fav: true,
     category: '개인 생산성', model: 'GPT-4o mini', version: 'v1.4', updated: '2026-06-30', tools: ['메일 연동', '일정 연동', '문서 요약'], examples: ['오늘 일정 브리핑 만들어줘', '안 읽은 메일 요약해줘'] },
@@ -30,42 +42,42 @@ export const seedAgents = [
 // 리소스(도구·미들웨어·스킬·MCP) 카탈로그
 //  · type: tool | middleware | skill | mcp   (유형 탭)
 //  · proto: built-in | custom | http | mcp-http | mcp-stdio  (연결 방식 배지)
-//  · tags: 검색·필터용 태그   · desc: 카드 설명
+//  · tags: 검색·필터용 태그   · desc: 카드 설명   · dept: 업무부서(사용 조직, 카드 태그·필터)
 export const seedResources = [
   // ── 도구 ──
-  { name: '문서 검색', type: 'tool', owner: 'AI플랫폼팀', perm: 'granted', proto: 'mcp-http', desc: '사내 문서를 검색합니다', tags: ['rag', 'internal-documents', 'search'] },
-  { name: '지식 검색', type: 'tool', owner: 'AI플랫폼팀', perm: 'granted', proto: 'mcp-http', desc: '지식 베이스를 하이브리드 방식으로 검색합니다', tags: ['rag', 'knowledge-base', 'hybrid-search'] },
-  { name: 'FAQ 검색', type: 'tool', owner: 'CS팀', perm: 'granted', proto: 'built-in', desc: 'FAQ 문서를 검색합니다', tags: ['search', 'knowledge-base'] },
-  { name: '지표 수집', type: 'tool', owner: '데이터플랫폼팀', perm: 'granted', proto: 'http', desc: '운영 지표를 수집합니다', tags: ['api', 'data-extraction'] },
-  { name: '표 데이터 분석', type: 'tool', owner: '데이터플랫폼팀', perm: 'none', proto: 'built-in', desc: '표 형식 데이터를 분석합니다', tags: ['data-extraction', 'code'] },
-  { name: '차트 생성', type: 'tool', owner: '데이터플랫폼팀', perm: 'none', proto: 'built-in', desc: '데이터로 차트를 생성합니다', tags: ['data-extraction'] },
-  { name: '약관 검색', type: 'tool', owner: '상품개발부', perm: 'none', proto: 'mcp-http', desc: '보험 약관 문서를 검색합니다', tags: ['rag', 'internal-documents', 'search'] },
-  { name: '심사 기준 검색', type: 'tool', owner: '심사부', perm: 'none', proto: 'mcp-http', desc: '심사 기준·판례를 검색합니다', tags: ['rag', 'internal-documents'] },
-  { name: '규정 검색', type: 'tool', owner: '준법감시부', perm: 'none', proto: 'mcp-http', desc: '사내 규정·컴플라이언스 문서를 검색합니다', tags: ['rag', 'internal-documents'] },
+  { name: '문서 검색', type: 'tool', owner: 'AI플랫폼팀', perm: 'granted', proto: 'mcp-http', desc: '사내 문서를 검색합니다', tags: ['rag', 'internal-documents', 'search'], dept: 'AX추진팀' },
+  { name: '지식 검색', type: 'tool', owner: 'AI플랫폼팀', perm: 'granted', proto: 'mcp-http', desc: '지식 베이스를 하이브리드 방식으로 검색합니다', tags: ['rag', 'knowledge-base', 'hybrid-search'], dept: '디지털전략팀' },
+  { name: 'FAQ 검색', type: 'tool', owner: 'CS팀', perm: 'granted', proto: 'built-in', desc: 'FAQ 문서를 검색합니다', tags: ['search', 'knowledge-base'], dept: '고객서비스부' },
+  { name: '지표 수집', type: 'tool', owner: '데이터플랫폼팀', perm: 'granted', proto: 'http', desc: '운영 지표를 수집합니다', tags: ['api', 'data-extraction'], dept: '데이터플랫폼팀' },
+  { name: '표 데이터 분석', type: 'tool', owner: '데이터플랫폼팀', perm: 'none', proto: 'built-in', desc: '표 형식 데이터를 분석합니다', tags: ['data-extraction', 'code'], dept: '경영기획부' },
+  { name: '차트 생성', type: 'tool', owner: '데이터플랫폼팀', perm: 'none', proto: 'built-in', desc: '데이터로 차트를 생성합니다', tags: ['data-extraction'], dept: '마케팅부' },
+  { name: '약관 검색', type: 'tool', owner: '상품개발부', perm: 'none', proto: 'mcp-http', desc: '보험 약관 문서를 검색합니다', tags: ['rag', 'internal-documents', 'search'], dept: '상품개발부' },
+  { name: '심사 기준 검색', type: 'tool', owner: '심사부', perm: 'none', proto: 'mcp-http', desc: '심사 기준·판례를 검색합니다', tags: ['rag', 'internal-documents'], dept: '심사부' },
+  { name: '규정 검색', type: 'tool', owner: '준법감시부', perm: 'none', proto: 'mcp-http', desc: '사내 규정·컴플라이언스 문서를 검색합니다', tags: ['rag', 'internal-documents'], dept: '준법감시부' },
   // ── 스킬 ──
-  { name: '문서 요약', type: 'skill', owner: 'AI플랫폼팀', perm: 'granted', proto: 'built-in', desc: '긴 문서를 핵심 위주로 요약합니다', tags: ['ai-powered', 'summarize'] },
-  { name: '요약', type: 'skill', owner: 'AI플랫폼팀', perm: 'granted', proto: 'built-in', desc: '텍스트를 간결하게 요약합니다', tags: ['ai-powered', 'summarize'] },
-  { name: '문서 생성', type: 'skill', owner: 'AI플랫폼팀', perm: 'granted', proto: 'custom', desc: '서식에 맞춰 문서를 생성합니다', tags: ['ai-powered', 'generate'] },
-  { name: '근거 조항 인용', type: 'skill', owner: 'AI플랫폼팀', perm: 'granted', proto: 'custom', desc: '근거가 되는 조항을 찾아 인용합니다', tags: ['ai-powered', 'citation'] },
-  { name: '조항 인용', type: 'skill', owner: 'AI플랫폼팀', perm: 'granted', proto: 'custom', desc: '관련 조항을 인용합니다', tags: ['citation'] },
-  { name: '응대 문안 생성', type: 'skill', owner: 'CS팀', perm: 'granted', proto: 'custom', desc: '고객 응대 문안을 생성합니다', tags: ['ai-powered', 'communication', 'generate'] },
-  { name: '유사 사례 비교', type: 'skill', owner: '심사부', perm: 'granted', proto: 'custom', desc: '유사 심사 사례를 비교합니다', tags: ['ai-powered', 'compare'] },
-  { name: '티켓 분류', type: 'skill', owner: '정보시스템부', perm: 'granted', proto: 'built-in', desc: '문의 티켓을 자동 분류합니다', tags: ['ai-powered', 'classification'] },
-  { name: 'STT 텍스트 정리', type: 'skill', owner: 'IT인프라팀', perm: 'granted', proto: 'built-in', desc: '음성 인식 결과를 정리합니다', tags: ['ai-powered', 'transcription'] },
+  { name: '문서 요약', type: 'skill', owner: 'AI플랫폼팀', perm: 'granted', proto: 'built-in', desc: '긴 문서를 핵심 위주로 요약합니다', tags: ['ai-powered', 'summarize'], dept: 'AX추진팀' },
+  { name: '요약', type: 'skill', owner: 'AI플랫폼팀', perm: 'granted', proto: 'built-in', desc: '텍스트를 간결하게 요약합니다', tags: ['ai-powered', 'summarize'], dept: '마케팅부' },
+  { name: '문서 생성', type: 'skill', owner: 'AI플랫폼팀', perm: 'granted', proto: 'custom', desc: '서식에 맞춰 문서를 생성합니다', tags: ['ai-powered', 'generate'], dept: '경영기획부' },
+  { name: '근거 조항 인용', type: 'skill', owner: 'AI플랫폼팀', perm: 'granted', proto: 'custom', desc: '근거가 되는 조항을 찾아 인용합니다', tags: ['ai-powered', 'citation'], dept: '준법감시부' },
+  { name: '조항 인용', type: 'skill', owner: 'AI플랫폼팀', perm: 'granted', proto: 'custom', desc: '관련 조항을 인용합니다', tags: ['citation'], dept: '계리부' },
+  { name: '응대 문안 생성', type: 'skill', owner: 'CS팀', perm: 'granted', proto: 'custom', desc: '고객 응대 문안을 생성합니다', tags: ['ai-powered', 'communication', 'generate'], dept: '고객채널' },
+  { name: '유사 사례 비교', type: 'skill', owner: '심사부', perm: 'granted', proto: 'custom', desc: '유사 심사 사례를 비교합니다', tags: ['ai-powered', 'compare'], dept: '심사부' },
+  { name: '티켓 분류', type: 'skill', owner: '정보시스템부', perm: 'granted', proto: 'built-in', desc: '문의 티켓을 자동 분류합니다', tags: ['ai-powered', 'classification'], dept: '고객서비스부' },
+  { name: 'STT 텍스트 정리', type: 'skill', owner: 'IT인프라팀', perm: 'granted', proto: 'built-in', desc: '음성 인식 결과를 정리합니다', tags: ['ai-powered', 'transcription'], dept: '고객채널' },
   // ── 미들웨어 ──
-  { name: '메일 연동', type: 'middleware', owner: 'IT인프라팀', perm: 'granted', proto: 'http', desc: '사내 메일 시스템과 연동합니다', tags: ['email', 'communication', 'transactional'] },
-  { name: '일정 연동', type: 'middleware', owner: 'IT인프라팀', perm: 'granted', proto: 'http', desc: '캘린더·일정과 연동합니다', tags: ['communication', 'transactional'] },
-  { name: '사내 양식 템플릿', type: 'middleware', owner: '경영지원부', perm: 'granted', proto: 'built-in', desc: '사내 문서 양식을 제공합니다', tags: ['internal-documents'] },
-  { name: '그룹웨어 연동', type: 'middleware', owner: '정보시스템부', perm: 'none', proto: 'http', desc: '그룹웨어와 연동합니다', tags: ['communication', 'transactional'] },
-  { name: 'SSO/EIAM 커넥터', type: 'middleware', owner: '정보시스템부', perm: 'none', proto: 'custom', desc: 'SSO·계정 인증과 연동합니다', tags: ['api', 'transactional'] },
-  { name: 'ITSM 연동', type: 'middleware', owner: 'IT인프라팀', perm: 'none', proto: 'http', desc: 'ITSM 티켓 시스템과 연동합니다', tags: ['api', 'dev-tools', 'transactional'] },
+  { name: '메일 연동', type: 'middleware', owner: 'IT인프라팀', perm: 'granted', proto: 'http', desc: '사내 메일 시스템과 연동합니다', tags: ['email', 'communication', 'transactional'], dept: 'IT인프라팀' },
+  { name: '일정 연동', type: 'middleware', owner: 'IT인프라팀', perm: 'granted', proto: 'http', desc: '캘린더·일정과 연동합니다', tags: ['communication', 'transactional'], dept: '인사부' },
+  { name: '사내 양식 템플릿', type: 'middleware', owner: '경영지원부', perm: 'granted', proto: 'built-in', desc: '사내 문서 양식을 제공합니다', tags: ['internal-documents'], dept: '인사부' },
+  { name: '그룹웨어 연동', type: 'middleware', owner: '정보시스템부', perm: 'none', proto: 'http', desc: '그룹웨어와 연동합니다', tags: ['communication', 'transactional'], dept: 'IT인프라팀' },
+  { name: 'SSO/EIAM 커넥터', type: 'middleware', owner: '정보시스템부', perm: 'none', proto: 'custom', desc: 'SSO·계정 인증과 연동합니다', tags: ['api', 'transactional'], dept: '정보보안팀' },
+  { name: 'ITSM 연동', type: 'middleware', owner: 'IT인프라팀', perm: 'none', proto: 'http', desc: 'ITSM 티켓 시스템과 연동합니다', tags: ['api', 'dev-tools', 'transactional'], dept: '클라우드플랫폼팀' },
   // ── MCP ──
-  { name: 'Confluence MCP', type: 'mcp', owner: '협업플랫폼팀', perm: 'granted', proto: 'mcp-http', desc: 'Confluence 문서를 검색·조회합니다', tags: ['knowledge-base', 'search', 'internal-documents'] },
-  { name: 'Jira MCP', type: 'mcp', owner: '협업플랫폼팀', perm: 'none', proto: 'mcp-http', desc: 'Jira 이슈를 조회·관리합니다', tags: ['dev-tools', 'api'] },
-  { name: 'GitHub MCP', type: 'mcp', owner: 'DevOps팀', perm: 'none', proto: 'mcp-http', desc: 'GitHub 저장소·PR을 조회합니다', tags: ['dev-tools', 'code', 'api'] },
-  { name: 'Slack MCP', type: 'mcp', owner: '협업플랫폼팀', perm: 'none', proto: 'mcp-stdio', desc: 'Slack 메시지를 조회·전송합니다', tags: ['communication', 'api'] },
-  { name: 'PostgreSQL MCP', type: 'mcp', owner: '데이터플랫폼팀', perm: 'none', proto: 'mcp-stdio', desc: 'PostgreSQL 데이터를 조회합니다', tags: ['data-extraction', 'api'] },
-  { name: 'Splunk MCP', type: 'mcp', owner: 'IT인프라팀', perm: 'none', proto: 'mcp-stdio', desc: 'Splunk 로그를 검색합니다', tags: ['dev-tools', 'data-extraction'] },
+  { name: 'Confluence MCP', type: 'mcp', owner: '협업플랫폼팀', perm: 'granted', proto: 'mcp-http', desc: 'Confluence 문서를 검색·조회합니다', tags: ['knowledge-base', 'search', 'internal-documents'], dept: 'AX추진팀' },
+  { name: 'Jira MCP', type: 'mcp', owner: '협업플랫폼팀', perm: 'none', proto: 'mcp-http', desc: 'Jira 이슈를 조회·관리합니다', tags: ['dev-tools', 'api'], dept: '클라우드플랫폼팀' },
+  { name: 'GitHub MCP', type: 'mcp', owner: 'DevOps팀', perm: 'none', proto: 'mcp-http', desc: 'GitHub 저장소·PR을 조회합니다', tags: ['dev-tools', 'code', 'api'], dept: 'RPA자동화팀' },
+  { name: 'Slack MCP', type: 'mcp', owner: '협업플랫폼팀', perm: 'none', proto: 'mcp-stdio', desc: 'Slack 메시지를 조회·전송합니다', tags: ['communication', 'api'], dept: '영업채널' },
+  { name: 'PostgreSQL MCP', type: 'mcp', owner: '데이터플랫폼팀', perm: 'none', proto: 'mcp-stdio', desc: 'PostgreSQL 데이터를 조회합니다', tags: ['data-extraction', 'api'], dept: '데이터플랫폼팀' },
+  { name: 'Splunk MCP', type: 'mcp', owner: 'IT인프라팀', perm: 'none', proto: 'mcp-stdio', desc: 'Splunk 로그를 검색합니다', tags: ['dev-tools', 'data-extraction'], dept: '정보보안팀' },
 ]
 
 // 설정 > KEY 관리 — MCP·Agent 등록에 사용하는 API 키 (마스킹 표시용 목데이터)
@@ -76,6 +88,29 @@ export const seedKeys = [
   { id: 'key-003', name: 'GitHub MCP 토큰', type: 'mcp', provider: 'GitHub', value: 'ghp_A1b2C3d4E5f6G7h8I9j0', created: '2026-07-05', status: 'active' },
   { id: 'key-004', name: 'Confluence MCP', type: 'mcp', provider: 'Atlassian', value: 'ATATT3xFfGF0aBcDeFgHiJkL', created: '2026-07-02', status: 'expired' },
   { id: 'key-005', name: 'AX-HUB Agent 등록 키', type: 'agent', provider: 'AX-HUB', value: 'axk_live_5Kd9Qw2Rt7Yu3IpM', created: '2026-07-12', status: 'active' },
+]
+
+// 지식 요청(커뮤니티형) 시드 — 사용자가 지식 등록/보완을 요청, 관리자가 처리
+//  · status: pending(접수) | progress(진행중) | approved(승인) | rejected(반려)
+export const seedKnowledgeRequests = [
+  {
+    id: 'kr-001', title: '2026년 개정 표준약관 등록 요청',
+    content: '7월 개정된 실손보험 표준약관이 지식베이스에 없어 심사 시 확인이 어렵습니다. 최신 약관 PDF 등록을 요청합니다.',
+    files: [{ name: '실손보험_표준약관_2026개정.pdf', size: 1840000 }],
+    targetId: 'kn-05', targetName: '보험 상품 약관 지식베이스',
+    requester: '박민수', dept: '심사부', status: 'progress', createdAt: '2026-08-04',
+    comments: [
+      { author: '이서연', role: 'admin', text: '확인했습니다. 원문 검토 후 등록 진행하겠습니다.', at: '2026-08-04 14:20', system: false },
+    ],
+  },
+  {
+    id: 'kr-002', title: '고객 응대 스크립트 신규 시나리오 추가',
+    content: '해지방어 응대 시나리오가 부족합니다. 최근 민원 사례 기반 스크립트 3종 추가 등록 부탁드립니다.',
+    files: [],
+    targetId: 'kn-07', targetName: '고객 응대 스크립트 지식',
+    requester: '최지은', dept: 'CS팀', status: 'pending', createdAt: '2026-08-06',
+    comments: [],
+  },
 ]
 
 // 용어사전 — AI/에이전트·보험업무·데이터·인프라 용어 (대화형 조회용 목데이터)
@@ -137,13 +172,44 @@ export const glossaryTerms = [
     def: '95 백분위수 응답시간. 전체 요청의 95%가 이 시간 이내에 처리됨을 의미하는 성능 지표.' },
 ]
 
+// 문서(문서 관리): 문서 담당자 등록 요청 → 상위 승인자 승인. 승인 완료 문서는 '지식 등록'에서 지식화 대상이 된다.
+// status: 'doc-review'(승인 대기) | 'approved'(승인·지식화 대기) | 'in-reg'(지식 등록 진행중) | 'registered'(지식 등록 완료) | 'rejected'
+export const seedDocuments = [
+  { id: 'doc-01', name: '2026 상반기 캠페인 성과 리포트', desc: '분기별 캠페인 지표·집행 결과 원본 문서', docOwner: '박민수', docApprover: '김영업 (팀장)', status: 'doc-review', files: [{ name: '캠페인_성과_2026H1.xlsx', size: 284000 }, { name: '집행결과_요약.pdf', size: 1240000 }], createdAt: '2026-08-16' },
+  { id: 'doc-02', name: '보험금 심사 판례 모음 (2026)', desc: '최신 심사 판례·분쟁 사례 정리', docOwner: '김신한', docApprover: '정심사 (부장)', status: 'approved', files: [{ name: '심사판례_2026.docx', size: 640000 }], createdAt: '2026-08-13' },
+  { id: 'doc-03', name: '보험 상품 약관 개정본', desc: '판매중 상품 약관 개정 반영 문서', docOwner: '한소희', docApprover: '김영업 (팀장)', status: 'approved', createdAt: '2026-08-09' },
+  { id: 'doc-05', name: '고객 응대 표준 스크립트', desc: '민원·상담 응대 표준 문안', docOwner: '오지원', docApprover: '한상담 (팀장)', status: 'approved', createdAt: '2026-08-11' },
+  { id: 'doc-06', name: '채널·제휴 운영 지침', desc: '제휴 채널 운영 기준 문서', docOwner: '강태석', docApprover: '김영업 (팀장)', status: 'in-reg', createdAt: '2026-08-07' },
+  { id: 'doc-04', name: '내부 회계 기준 요약', desc: '재무 보고·회계 기준 요약본', docOwner: '김신한', docApprover: '정재무 (부장)', status: 'registered', files: [{ name: '내부회계기준_요약.pdf', size: 720000 }], createdAt: '2026-07-28' },
+  { id: 'doc-07', name: '캠페인 성과 분석 v1', desc: '2025 캠페인 성과 분석 원본(구버전)', docOwner: '김신한', docApprover: '김영업 (팀장)', status: 'del-req', files: [{ name: '캠페인분석_2025.xlsx', size: 512000 }], createdAt: '2026-07-20' },
+  { id: 'doc-08', name: '준법 감시 운영 매뉴얼', desc: '내부통제·준법 감시 운영 기준 (관리 문서)', docOwner: '한소희', docApprover: '이준법 (부장)', status: 'registered', files: [{ name: '준법감시_매뉴얼.pdf', size: 980000 }], createdAt: '2026-07-15' },
+]
+
+// 지식 등록 요청: 지식 담당자가 승인된 문서(복수)를 컬렉션(단일/복수) 선택해 등록 요청 → 지식 최종 승인자 승인 시 컬렉션에 지식 등록
+// status: 'kn-review'(승인 대기) | 'registered'(등록 완료) | 'rejected'
+export const seedKnowledgeRegs = [
+  { id: 'kr-01', docIds: ['doc-06'], collectionIds: ['kn-06', 'kn-07'], knOwner: '김신한', knApprover: '이지식 (파트장)', version: 'v1.0', scope: 'company', tags: ['채널', '제휴', '운영'], summary: '제휴 채널 운영 지침을 규정·CS 지식으로 반영', status: 'kn-review', createdAt: '2026-08-14' },
+  { id: 'kr-00', docIds: ['doc-04'], collectionIds: ['kn-03'], knOwner: '김신한', knApprover: '이지식 (파트장)', version: 'v1.0', scope: 'team', tags: ['회계', '재무'], summary: '내부 회계 기준 요약을 재무 지식으로 등록', status: 'registered', createdAt: '2026-07-29' },
+  { id: 'kr-02', docIds: ['doc-07'], collectionIds: ['kn-02'], knOwner: '김신한', knApprover: '이지식 (파트장)', version: 'v1.0', scope: 'team', tags: ['캠페인', '성과'], summary: '2025 캠페인 성과 분석을 캠페인 지식으로 등록', status: 'registered', createdAt: '2026-07-22' },
+  { id: 'kr-03', docIds: ['doc-08'], collectionIds: ['kn-06'], knOwner: '김신한', knApprover: '이지식 (파트장)', version: 'v1.0', scope: 'company', tags: ['준법', '내부통제'], summary: '준법 감시 운영 매뉴얼을 규정 지식으로 등록', status: 'registered', createdAt: '2026-07-16' },
+]
+
+// 문서 삭제 → 지식 사용중지 요청 시드 — 문서 삭제 승인 완료 후 지식 담당자 사용중지 요청 대상
+// status: 'del-review'(문서 삭제 승인 대기) | 'del-approved'(사용중지 요청 대기) | 'suspend-review'(사용중지 승인 대기) | 'suspended' | 'rejected'
+export const seedDocDeletions = [
+  { id: 'dd-01', docId: 'doc-07', docName: '캠페인 성과 분석 v1', collectionIds: ['kn-02'], docOwner: '김신한', docApprover: '김영업 (팀장)', knOwner: '지식 담당자', status: 'del-approved', createdAt: '2026-08-15' },
+]
+
 export const seedKnowledge = [
   { id: 'kn-01', name: '내 프로젝트 노트', desc: '개인 업무 노트·회의 메모 지식화', owner: '개인', scope: 'personal', perm: 'owner', docs: 86, linked: 1, updated: '2026-07-02', category: 'personal-note' },
-  { id: 'kn-02', name: '캠페인 성과 데이터 지식', desc: '최근 3년 캠페인 리포트·지표 문서', owner: '마케팅팀', scope: 'team', perm: 'granted', docs: 430, linked: 2, updated: '2026-06-30', category: 'sales-camp' },
-  { id: 'kn-03', name: '재무·회계 기준 지식', desc: '내부 회계 기준·재무 보고 가이드', owner: '재무기획팀', scope: 'team', perm: 'none', docs: 1020, linked: 4, updated: '2026-06-25', category: 'fin-account' },
+  { id: 'kn-02', name: '캠페인 성과 데이터 지식', desc: '최근 3년 캠페인 리포트·지표 문서', owner: '마케팅팀', scope: 'team', perm: 'granted', docs: 430, linked: 2, updated: '2026-06-30', category: 'sales-camp',
+    addedDocs: [{ docName: '캠페인 성과 분석 v1 v1.0', registeredAt: '2026-07-22', version: 'v1.0', registrant: '김신한', dept: '영업추진팀' }] },
+  { id: 'kn-03', name: '재무·회계 기준 지식', desc: '내부 회계 기준·재무 보고 가이드', owner: '재무기획팀', scope: 'team', perm: 'none', docs: 1020, linked: 4, updated: '2026-06-25', category: 'fin-account',
+    addedDocs: [{ docName: '내부 회계 기준 요약 v1.0', registeredAt: '2026-07-29', version: 'v1.0', registrant: '김신한', dept: '영업추진팀' }] },
   { id: 'kn-04', name: '보험금 심사 기준 지식', desc: '심사 매뉴얼·판례·사례 문서', owner: '심사부', scope: 'dept', perm: 'pending', docs: 860, linked: 3, updated: '2026-06-28', category: 'uw-standard' },
   { id: 'kn-05', name: '보험 상품 약관 지식베이스', desc: '판매중·판매중지 상품 약관 전체', owner: '상품개발부', scope: 'dept', perm: 'none', docs: 1240, linked: 5, updated: '2026-07-01', category: 'product-terms' },
-  { id: 'kn-06', name: '사내 규정·컴플라이언스 지식', desc: '사규·감독규정·내부통제 문서', owner: '준법감시부', scope: 'company', perm: 'granted', docs: 2310, linked: 8, updated: '2026-07-02', category: 'common-reg' },
+  { id: 'kn-06', name: '사내 규정·컴플라이언스 지식', desc: '사규·감독규정·내부통제 문서', owner: '준법감시부', scope: 'company', perm: 'granted', docs: 2310, linked: 8, updated: '2026-07-02', category: 'common-reg',
+    addedDocs: [{ docName: '준법 감시 운영 매뉴얼 v1.0', registeredAt: '2026-07-16', version: 'v1.0', registrant: '김신한', dept: '영업추진팀' }] },
   { id: 'kn-07', name: '고객 응대 스크립트 지식', desc: '상담 스크립트·응대 가이드', owner: 'CS팀', scope: 'company', perm: 'none', docs: 430, linked: 2, updated: '2026-06-30', category: 'cs-script' },
 ]
 
