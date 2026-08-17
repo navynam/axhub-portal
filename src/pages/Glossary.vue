@@ -15,12 +15,7 @@ const idx = ref('all')       // 'all' | 초성(가~하) | 알파벳(A~Z) | '#'
 const regModal = ref(false)
 const searchInput = ref(null)
 
-const isAdmin = computed(() => store.role === 'admin')
-const pending = computed(() => store.glossaryRequests)
 const synOf = t => (t.syn && t.syn.length ? t.syn : (t.keys || []))
-
-// 용어 승인은 마이페이지 승인함에서 처리 → 이동
-function goApprove() { store.page = 'perms'; store.permsView = 'approve' }
 
 // ── 초성/알파벳 인덱스 ─────────────────────────────
 const CHO = ['가', '나', '다', '라', '마', '바', '사', '아', '자', '차', '카', '타', '파', '하']
@@ -79,13 +74,6 @@ onMounted(() => focusSearch()) // 진입 시 바로 검색 가능
       <button v-if="filtered" class="btn btn-ghost gl-reset" @click="reset()"><Icon name="back" :size="14" /> 전체 보기</button>
       <span v-else class="gl-count">{{ store.glossary.length }}개 용어</span>
       <button class="btn btn-primary" @click="regModal = true"><Icon name="plus" :size="14" /> 용어 등록</button>
-    </div>
-
-    <!-- 등록 신청 안내 (승인은 마이페이지 승인함에서 처리) -->
-    <div v-if="pending.length" class="gl-pending-hint">
-      <Icon name="book" :size="13" />
-      용어 등록 신청 {{ pending.length }}건이 승인 대기 중입니다.
-      <button v-if="isAdmin" class="gl-hint-link" @click="goApprove">승인함에서 처리 <Icon name="arrow" :size="12" /></button>
     </div>
 
     <!-- 초성 · 알파벳 인덱스 -->

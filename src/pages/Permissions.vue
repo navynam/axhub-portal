@@ -18,10 +18,8 @@ const from = ref('')         // 기간 시작(YYYY-MM-DD)
 const to = ref('')           // 기간 종료
 const listView = ref('list') // list | grid(카드)
 
-const isAdmin = computed(() => store.role === 'admin')
-
-// 화면(내 요청함/승인함)은 사이드바 메뉴가 결정(store.permsView). 사용자는 항상 내 요청함.
-const activeView = computed(() => (isAdmin.value ? store.permsView : 'mine'))
+// 화면(요청함/승인함)은 사이드바 메뉴가 결정(store.permsView).
+const activeView = computed(() => store.permsView)
 const reviewing = computed(() => activeView.value === 'approve') // 승인 검토 모드
 
 // ── 권한 요청 ──────────────────────────────
