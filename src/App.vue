@@ -21,24 +21,34 @@ import KnowledgeReg from './pages/KnowledgeReg.vue'
 import GroupManage from './pages/GroupManage.vue'
 import AgentOwners from './pages/AgentOwners.vue'
 import KnowledgeOwners from './pages/KnowledgeOwners.vue'
+import MyPage from './pages/MyPage.vue'
 import RequestModal from './components/RequestModal.vue'
 import DenyModal from './components/DenyModal.vue'
 import HubRail from './components/HubRail.vue'
 
 /* ── 라우팅 (간이) ── */
-const pages = { home: Home, agents: Agents, tools: ToolManage, docs: DocManage, knreg: KnowledgeReg, knowledge: Knowledge, glossary: Glossary, perms: Permissions, community: Community, run: AgentRun, access: AccessRequest, sysmon: SysMonitor, itops: ItOps, computeruse: ComputerUse, daily: DailyReport, groups: GroupManage, agentowners: AgentOwners, knowledgeowners: KnowledgeOwners }
+const pages = { home: Home, agents: Agents, tools: ToolManage, docs: DocManage, knreg: KnowledgeReg, knowledge: Knowledge, glossary: Glossary, perms: Permissions, community: Community, run: AgentRun, access: AccessRequest, sysmon: SysMonitor, itops: ItOps, computeruse: ComputerUse, daily: DailyReport, groups: GroupManage, agentowners: AgentOwners, knowledgeowners: KnowledgeOwners, mypage: MyPage }
 const boardIds = computed(() => store.boards.map(b => b.id))
 const current = computed(() => (boardIds.value.includes(store.page) ? Community : pages[store.page] || Home))
 
 /* ── 상단 헤더에 표시할 현재 화면 타이틀 ── */
-const titleMap = { home: 'AX HUB', agents: '에이전트', tools: '도구', docs: '문서 관리', knreg: '지식 관리', knowledge: '지식 검색', glossary: '용어사전', perms: '마이페이지', access: '권한 신청', run: '에이전트', sysmon: '시스템 모니터링', itops: 'IT 운영 관리', computeruse: '현황 전파', daily: '일일점검 보고서', groups: '그룹 관리', agentowners: '에이전트 담당자 관리', knowledgeowners: '지식 담당자 관리' }
-const currentTitle = computed(() => (boardIds.value.includes(store.page) ? '커뮤니티' : titleMap[store.page] || 'AX HUB'))
+const titleMap = { home: 'AX HUB', agents: '에이전트', tools: '도구', docs: '문서 관리', knreg: '지식 관리', knowledge: '지식 검색', glossary: '용어사전', perms: '요청함', access: '권한 신청', run: '에이전트', sysmon: '시스템 모니터링', itops: 'IT 운영 관리', computeruse: '현황 전파', daily: '일일점검 보고서', groups: '그룹 관리', agentowners: '에이전트 담당자 관리', knowledgeowners: '지식 담당자 관리', mypage: '마이페이지' }
+const currentTitle = computed(() => {
+  if (boardIds.value.includes(store.page)) return '커뮤니티'
+  if (store.page === 'perms') return store.permsView === 'approve' ? '승인함' : '요청함'
+  return titleMap[store.page] || 'AX HUB'
+})
 
 /* ── LNB 메뉴 (설계서 IA 기준) ── */
 const nav = computed(() => {
-  // 마이페이지 하위: 내 요청함 / (관리자)승인함 / 권한 신청
-  const mypage = [{ key: 'perms-mine', label: '내 요청함', page: 'perms', view: 'mine' }]
-  if (store.role === 'admin') mypage.push({ key: 'perms-approve', label: '승인함', page: 'perms', view: 'approve' })
+  // 권한 관리 하위: 그룹/담당자 관리 + 요청함 / (관리자)승인함
+  const authChildren = [
+    { key: 'groups', label: '그룹 관리', page: 'groups' },
+    { key: 'agentowners', label: '에이전트 담당자 관리', page: 'agentowners' },
+    { key: 'knowledgeowners', label: '지식 담당자 관리', page: 'knowledgeowners' },
+    { key: 'perms-mine', label: '요청함', page: 'perms', view: 'mine' },
+  ]
+  if (store.role === 'admin') authChildren.push({ key: 'perms-approve', label: '승인함', page: 'perms', view: 'approve' })
 
   const menu = [
     { key: 'home', label: '홈', ico: 'home' },
@@ -47,20 +57,13 @@ const nav = computed(() => {
     { key: 'tools', label: '도구', ico: 'tool' },
     { key: 'glossary', label: '용어사전', ico: 'search' },
     { key: 'community', label: '커뮤니티', ico: 'chat', children: store.boards.map(b => ({ key: b.id, label: b.name, page: b.id })) },
-    { key: 'mypage', label: '마이페이지', ico: 'shield', children: mypage },
     {
       key: 'manage', label: '문서/지식 관리', ico: 'layers', children: [
         { key: 'docs', label: '문서 관리', page: 'docs' },
         { key: 'knreg', label: '지식 관리', page: 'knreg' },
       ],
     },
-    {
-      key: 'authmgmt', label: '권한 관리', ico: 'users', children: [
-        { key: 'groups', label: '그룹 관리', page: 'groups' },
-        { key: 'agentowners', label: '에이전트 담당자 관리', page: 'agentowners' },
-        { key: 'knowledgeowners', label: '지식 담당자 관리', page: 'knowledgeowners' },
-      ],
-    },
+    { key: 'authmgmt', label: '권한 관리', ico: 'users', children: authChildren },
   ]
   // 관리자 전용: 시스템 관리 (시스템 모니터링 / IT 운영 관리)
   if (store.role === 'admin') {
@@ -73,6 +76,8 @@ const nav = computed(() => {
       ],
     })
   }
+  // 마이페이지: 사용 통계 대시보드 — 제일 아래 메뉴
+  menu.push({ key: 'mypage', label: '마이페이지', ico: 'shield' })
   return menu
 })
 

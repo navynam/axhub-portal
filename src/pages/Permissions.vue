@@ -123,12 +123,6 @@ function submitReply(r) { if (replyReport(r, replyText.value)) { replyingId.valu
       <button role="tab" :class="{ on: tab === 'perm' }" @click="tab = 'perm'">
         {{ reviewing ? '권한 승인' : '권한 요청' }}<span class="n">{{ pendingCount + doneCount }}</span>
       </button>
-      <button role="tab" :class="{ on: tab === 'knowledge' }" @click="tab = 'knowledge'">
-        <Icon name="book" :size="13" class="tab-ic" />{{ reviewing ? '지식 승인' : '지식 요청' }}<span class="n">{{ knItems.length }}</span>
-      </button>
-      <button role="tab" :class="{ on: tab === 'glossary' }" @click="tab = 'glossary'">
-        <Icon name="search" :size="13" class="tab-ic" />{{ reviewing ? '용어 승인' : '용어 요청' }}<span class="n">{{ glItems.length }}</span>
-      </button>
       <button role="tab" :class="{ on: tab === 'report' }" @click="tab = 'report'">
         <Icon name="flag" :size="13" class="tab-ic" />{{ reviewing ? '신고 처리' : '신고함' }}<span class="n">{{ reportScoped.length }}</span>
       </button>
@@ -216,82 +210,6 @@ function submitReply(r) { if (replyReport(r, replyText.value)) { replyingId.valu
       <div v-else class="card empty">
         <b>{{ reviewing ? '표시할 요청이 없습니다' : '요청 내역이 없습니다' }}</b>
         {{ q || from || to ? '검색어·기간·상태 조건을 조정해 보세요.' : (reviewing ? '새 요청이 접수되면 알림과 함께 여기에 표시됩니다.' : 'Agent·지식 카탈로그에서 권한을 요청해 보세요.') }}
-      </div>
-    </template>
-
-    <!-- ══════════ 지식 요청 탭 ══════════ -->
-    <template v-else-if="tab === 'knowledge'">
-      <div class="filters" style="margin-top:16px">
-        <span class="rep-count-hint">{{ reviewing ? '승인 대기' : '진행중' }} {{ knPending }}건</span>
-      </div>
-
-      <div class="card" v-if="knItems.length">
-        <div v-for="x in knItems" :key="x.kind + x.id" class="req-row">
-          <div class="sq sq-sm" :class="x.kind === 'doc' ? 'sq-navy' : 'sq-green'">{{ x.title.slice(0, 1) }}</div>
-          <div class="req-body">
-            <div class="req-title">
-              <span class="type-tag" :class="x.kind === 'doc' ? 'tt-doc' : 'tt-req'">{{ x.typeLabel }}</span>
-              {{ x.title }}
-            </div>
-            <div class="req-sub"><template v-if="reviewing">{{ x.requester }} · {{ x.dept }} · </template>{{ x.sub }} · {{ x.createdAt }}</div>
-            <div class="req-reason" v-if="x.reason">사유: {{ x.reason }}</div>
-            <div class="req-files" v-if="x.files && x.files.length">
-              <span v-for="(f, i) in x.files" :key="i" class="knr-file"><Icon name="doc" :size="11" /> {{ f.name }}</span>
-            </div>
-          </div>
-          <div class="req-side">
-            <span class="pill" :class="x.statusCls">{{ x.statusLabel }}</span>
-            <div v-if="reviewing && (x.status === 'pending' || x.status === 'progress')" class="req-actions">
-              <button class="btn btn-green btn-sm" @click="knApprove(x)">{{ x.kind === 'doc' ? '승인·등록' : '승인' }}</button>
-              <button class="btn btn-danger btn-sm" @click="knReject(x)">반려</button>
-            </div>
-            <div v-else-if="!reviewing && x.kind === 'req' && x.status === 'pending'" class="req-actions">
-              <button class="btn btn-ghost btn-sm" @click="knCancel(x)">요청 취소</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div v-else class="card empty">
-        <b>{{ reviewing ? '대기 중인 지식 요청이 없습니다' : '지식 요청 내역이 없습니다' }}</b>
-        {{ reviewing ? '지식 요청·문서 등록이 접수되면 여기에서 승인·반려할 수 있습니다.' : '지식관리에서 ‘지식 요청’ 또는 카드의 ‘지식 등록’을 진행해 보세요.' }}
-      </div>
-    </template>
-
-    <!-- ══════════ 용어 등록 탭 ══════════ -->
-    <template v-else-if="tab === 'glossary'">
-      <div class="filters" style="margin-top:16px">
-        <span class="rep-count-hint">{{ reviewing ? '승인 대기' : '신청중' }} {{ glPending }}건</span>
-      </div>
-
-      <div class="card" v-if="glItems.length">
-        <div v-for="x in glItems" :key="x.id" class="req-row">
-          <div class="sq sq-sm sq-navy">{{ x.term.slice(0, 1) }}</div>
-          <div class="req-body">
-            <div class="req-title">
-              <span class="type-tag tt-req">용어 등록</span>
-              {{ x.term }}
-            </div>
-            <div class="req-sub">
-              <template v-if="reviewing">{{ x.requester }} · {{ x.dept }} · </template>{{ x.cat }}<template v-if="x.abbr"> · 약어 {{ x.abbr }}</template> · {{ x.createdAt }}
-            </div>
-            <div class="req-reason">정의: {{ x.def }}</div>
-            <div class="req-sub" v-if="x.syn && x.syn.length">유의어: {{ x.syn.join(', ') }}</div>
-          </div>
-          <div class="req-side">
-            <span class="pill pill-pending">승인 대기</span>
-            <div v-if="reviewing" class="req-actions">
-              <button class="btn btn-green btn-sm" @click="glApprove(x)">승인·등록</button>
-              <button class="btn btn-danger btn-sm" @click="glReject(x)">반려</button>
-            </div>
-            <div v-else class="req-actions">
-              <button class="btn btn-ghost btn-sm" @click="glCancel(x)">신청 취소</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div v-else class="card empty">
-        <b>{{ reviewing ? '대기 중인 용어 등록 신청이 없습니다' : '용어 등록 신청 내역이 없습니다' }}</b>
-        {{ reviewing ? '용어 등록이 신청되면 여기에서 승인·반려할 수 있습니다.' : '용어사전에서 ‘용어 등록’으로 새 용어를 신청해 보세요.' }}
       </div>
     </template>
 
