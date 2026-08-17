@@ -113,17 +113,17 @@ function cancelTool(r) {
 <template>
   <div>
     <div class="catalog-toolbar">
-      <!-- 상단 탭 -->
-      <div class="tabs" role="tablist">
+      <!-- 상단 탭 (에이전트·지식과 동일한 세그먼트 스타일) -->
+      <div class="seg-tabs" role="tablist">
         <button role="tab" :aria-selected="tab === 'mine'" :class="{ on: tab === 'mine' }" @click="tab = 'mine'">내가 사용할 수 있는 목록<span class="n">{{ mineTotal }}</span></button>
         <button role="tab" :aria-selected="tab === 'all'" :class="{ on: tab === 'all' }" @click="tab = 'all'">전체 목록<span class="n">{{ resources.length }}</span></button>
       </div>
 
       <!-- 유형 탭 -->
-      <div class="tabs tabs-sub" role="tablist">
+      <div class="seg-tabs" role="tablist">
         <button v-for="t in TYPES" :key="t.key" role="tab" :aria-selected="typeFilter === t.key"
           :class="{ on: typeFilter === t.key }" @click="setType(t.key)">
-          <Icon v-if="t.ico" :name="t.ico" :size="13" class="tab-ic" />{{ t.label }}<span class="n">{{ typeCount(t.key) }}</span>
+          <Icon v-if="t.ico" :name="t.ico" :size="13" />{{ t.label }}<span class="n">{{ typeCount(t.key) }}</span>
         </button>
       </div>
 
