@@ -47,13 +47,15 @@ export const store = reactive({
   // folder: 폴더 그룹화용 / shares: 공유 횟수(인기 지표) / skills: 에이전트가 쓰는 스킬(신고 대상 선택용)
   agents: seedAgents.map((a, i) => ({
     ...a,
-    folder: AGENT_GROUP_OF[a.id] || '미분류',              // folder = 소속 전사 그룹(관리자 관리)
+    folder: AGENT_GROUP_OF[a.id] || '미분류',              // folder = 소속 전사 그룹(관리자 관리, 전체 Agent 그룹핑)
+    myFolder: a.perm === 'owner' ? '나의 업무' : '미분류',   // myFolder = 개인 폴더(내 Agent 폴더 관리)
     shares: Math.max(1, Math.round(a.runs / 8)),
     skills: [SKILL_POOL[i % SKILL_POOL.length], SKILL_POOL[(i + 3) % SKILL_POOL.length]],
     manager: a.manager || MGR[i % MGR.length].name,        // 담당자(오너) 이름
     managerDept: a.managerDept || MGR[i % MGR.length].dept, // 담당자 소속
   })),
   agentGroups: [...AGENT_GROUPS], // 전사 에이전트 그룹(관리자가 그룹 관리에서 생성)
+  myFolders: ['나의 업무'],       // 내 Agent 개인 폴더(사용자가 직접 생성)
   knGroups: [...KN_GROUPS],       // 전사 지식 그룹
   // group: 소속 전사 지식 그룹 / manager: 담당자(오너)
   knowledge: seedKnowledge.map((k, i) => ({

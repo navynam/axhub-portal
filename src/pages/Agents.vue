@@ -6,10 +6,12 @@
  * · 해시태그(도구) 필터 · 폴더별 그룹 · 카드/행 액션(즐겨찾기·활성토글·폴더이동·공유·실행/권한요청)
  * 스타일은 이 파일 scoped <style> 에만 존재 → 다른 페이지 영향 없음.
  */
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { store, toggleActive, openRun, toggleFavorite, agentReady, resourcePerm, openRequest } from '../store.js'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { store, toggleActive, openRun, toggleFavorite, agentReady, resourcePerm, openRequest, addMyFolder } from '../store.js'
 import Icon from '../components/Icon.vue'
 import AgentInfoModal from '../components/AgentInfoModal.vue'
+import FolderPickerModal from '../components/FolderPickerModal.vue'
+import PromptDialog from '../components/PromptDialog.vue'
 
 const tabs = [
   { key: 'mine', label: '내 Agent' },
@@ -22,7 +24,9 @@ const accessFilter = ref('all')   // all | yes(실행 가능) | no(도구 권한
 const view = ref('grid')          // grid | list
 const infoAgent = ref(null)
 const tagFilter = ref('')         // 선택된 해시태그(도구)
-const folderFilter = ref('전체')  // 선택된 그룹
+const folderFilter = ref('전체')  // 선택된 그룹/폴더
+const folderFor = ref(null)       // 내 Agent 폴더 이동 팝업 대상
+const showNewFolder = ref(false)  // 내 Agent 새 폴더 팝업
 
 // 데이터 상태 (loading/ready/error)
 const dataState = ref('loading')
@@ -59,15 +63,24 @@ function toggleTag(t) { tagFilter.value = tagFilter.value === t ? '' : t }
 const tagTrack = ref(null)
 function scrollTags(dir) { tagTrack.value?.scrollBy({ left: dir * 260, behavior: 'smooth' }) }
 
-// 그룹 목록/개수 (전사 그룹은 권한 관리 › 그룹 관리에서 생성)
+// 내 Agent = 개인 폴더 관리(직접 생성·이동) / 전체·즐겨찾기 = 전사 그룹(권한 관리 › 그룹 관리)
+const groupingMine = computed(() => tab.value === 'mine')
+const folderField = a => (groupingMine.value ? (a.myFolder || '미분류') : (a.folder || '미분류'))
 const folderList = computed(() => {
-  const set = new Set(store.agentGroups)
-  store.agents.forEach(a => { if (a.folder) set.add(a.folder) })
+  const set = groupingMine.value ? new Set(store.myFolders) : new Set(store.agentGroups)
+  store.agents.filter(inTab).forEach(a => { const f = folderField(a); if (f) set.add(f) })
   return ['전체', ...set]
 })
 function folderCount(f) {
   const base = store.agents.filter(inTab)
-  return f === '전체' ? base.length : base.filter(a => a.folder === f).length
+  return f === '전체' ? base.length : base.filter(a => folderField(a) === f).length
+}
+// 탭 전환 시 폴더 필터 초기화(그룹/폴더 체계가 달라짐)
+watch(tab, () => { folderFilter.value = '전체' })
+function onCreateFolder(name) {
+  const f = addMyFolder(name)
+  showNewFolder.value = false
+  if (f) folderFilter.value = f
 }
 
 // 폴더 제외 전체 필터 + 공유 많은 순
@@ -85,11 +98,11 @@ const list = computed(() =>
 const sections = computed(() => {
   const base = list.value
   if (folderFilter.value !== '전체') {
-    return [{ folder: folderFilter.value, items: base.filter(a => a.folder === folderFilter.value), header: false }]
+    return [{ folder: folderFilter.value, items: base.filter(a => folderField(a) === folderFilter.value), header: false }]
   }
   return folderList.value
     .filter(f => f !== '전체')
-    .map(f => ({ folder: f, items: base.filter(a => a.folder === f), header: true }))
+    .map(f => ({ folder: f, items: base.filter(a => folderField(a) === f), header: true }))
     .filter(g => g.items.length)
 })
 const totalCount = computed(() => sections.value.reduce((n, g) => n + g.items.length, 0))
@@ -131,10 +144,11 @@ function resetFilters() { q.value = ''; tagFilter.value = ''; accessFilter.value
         </div>
       </div>
 
-      <div class="ax-folderbar" role="group" aria-label="그룹">
+      <div class="ax-folderbar" role="group" :aria-label="groupingMine ? '내 폴더' : '그룹'">
         <button v-for="f in folderList" :key="f" class="ax-fchip" :class="{ on: folderFilter === f }" @click="folderFilter = f">
           <Icon :name="f === '전체' ? 'grid' : 'folder'" :size="13" />{{ f }}<span class="ax-fn">{{ folderCount(f) }}</span>
         </button>
+        <button v-if="groupingMine" class="ax-fchip add" @click="showNewFolder = true" title="새 폴더 만들기"><Icon name="plus" :size="13" /> 새 폴더</button>
       </div>
     </div>
 
@@ -188,7 +202,10 @@ function resetFilters() { q.value = ''; tagFilter.value = ''; accessFilter.value
             <div class="ax-actions" @click.stop>
               <button v-if="a.perm === 'owner'" class="ax-toggle" :class="{ on: a.active }" @click="toggleActive(a)"
                 :aria-pressed="a.active" :aria-label="`${a.name} ${a.active ? '비활성화' : '활성화'}`"></button>
-              <span class="ax-folderbtn static" :title="`그룹: ${a.folder}`">
+              <button v-if="groupingMine" class="ax-folderbtn" @click.stop="folderFor = a" :title="`폴더: ${a.myFolder} · 클릭하여 이동`">
+                <Icon name="folder" :size="12" /><span>{{ a.myFolder }}</span>
+              </button>
+              <span v-else class="ax-folderbtn static" :title="`그룹: ${a.folder}`">
                 <Icon name="folder" :size="12" /><span>{{ a.folder }}</span>
               </span>
               <span class="ax-share" title="공유 횟수"><Icon name="share" :size="11" /> {{ a.shares.toLocaleString() }}</span>
@@ -220,7 +237,10 @@ function resetFilters() { q.value = ''; tagFilter.value = ''; accessFilter.value
               <button v-else-if="agentPending(a)" class="ax-pending" disabled><Icon name="clock" :size="12" /> 요청중</button>
               <button v-else class="ax-req" @click="openRequest('agent', a)"><Icon name="shield" :size="12" /> 권한 요청</button>
             </div>
-            <span class="ax-folderbtn row static" :title="`그룹: ${a.folder}`">
+            <button v-if="groupingMine" class="ax-folderbtn row" @click="folderFor = a" :title="`폴더: ${a.myFolder} · 클릭하여 이동`">
+              <Icon name="folder" :size="12" /><span>{{ a.myFolder }}</span>
+            </button>
+            <span v-else class="ax-folderbtn row static" :title="`그룹: ${a.folder}`">
               <Icon name="folder" :size="12" /><span>{{ a.folder }}</span>
             </span>
             <button class="ax-fav" :class="{ on: a.fav }" @click="toggleFavorite(a)"
@@ -246,6 +266,9 @@ function resetFilters() { q.value = ''; tagFilter.value = ''; accessFilter.value
     </div>
 
     <AgentInfoModal v-if="infoAgent" :agent="infoAgent" @close="infoAgent = null" />
+    <FolderPickerModal v-if="folderFor" :agent="folderFor" @close="folderFor = null" />
+    <PromptDialog v-if="showNewFolder" title="새 폴더" label="폴더 이름" placeholder="예: 마케팅 봇" confirm-text="만들기"
+      @confirm="onCreateFolder" @close="showNewFolder = false" />
   </div>
 </template>
 

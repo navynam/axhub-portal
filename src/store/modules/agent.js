@@ -33,6 +33,20 @@ export function removeAgentFromGroup(agent) {
   toast(`‘${agent.name}’을(를) 그룹에서 제외했습니다.`, 'info')
 }
 
+/* ── 내 Agent 개인 폴더 (전사 그룹과 별개) ── */
+/** 개인 폴더 생성 (중복 무시). 생성된 폴더명 반환 */
+export function addMyFolder(name) {
+  const clean = (name || '').trim()
+  if (!clean) return null
+  if (!store.myFolders.includes(clean)) store.myFolders.push(clean)
+  return clean
+}
+/** 에이전트를 개인 폴더로 이동 */
+export function moveAgentToMyFolder(agent, folder) {
+  agent.myFolder = folder
+  toast(`‘${agent.name}’을(를) ‘${folder}’ 폴더로 옮겼습니다.`, 'ok')
+}
+
 /** 즐겨찾기 토글 (대시보드/카탈로그 즐겨찾기 탭에 반영) */
 export function toggleFavorite(agent) {
   agent.fav = !agent.fav

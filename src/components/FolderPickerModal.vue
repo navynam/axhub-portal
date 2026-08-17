@@ -6,7 +6,7 @@
  * '새 폴더 만들어 이동'은 공통 PromptDialog 로 폴더를 만든 뒤 바로 이동한다.
  */
 import { ref, computed } from 'vue'
-import { store, moveAgentToFolder, addFolder } from '../store.js'
+import { store, moveAgentToMyFolder, addMyFolder } from '../store.js'
 import Icon from './Icon.vue'
 import PromptDialog from './PromptDialog.vue'
 
@@ -15,19 +15,19 @@ const emit = defineEmits(['close'])
 
 const showCreate = ref(false)
 
-// 이동 가능한 폴더 = 에이전트에 존재하는 폴더 + 사용자 생성 폴더
+// 이동 가능한 개인 폴더 = 사용자 생성 폴더 + 에이전트에 존재하는 폴더
 const folders = computed(() => {
-  const set = new Set(store.agents.map(a => a.folder).filter(Boolean))
-  store.folders.forEach(f => set.add(f))
+  const set = new Set(store.myFolders)
+  store.agents.forEach(a => { if (a.myFolder) set.add(a.myFolder) })
   return [...set]
 })
 
 function pick(f) {
-  if (f !== props.agent.folder) moveAgentToFolder(props.agent, f)
+  if (f !== props.agent.myFolder) moveAgentToMyFolder(props.agent, f)
   emit('close')
 }
 function onCreate(name) {
-  const f = addFolder(name)
+  const f = addMyFolder(name)
   showCreate.value = false
   if (f) pick(f)
 }
@@ -41,10 +41,10 @@ function onCreate(name) {
       <p class="fp-sub"><b>{{ agent.name }}</b> 을(를) 넣을 폴더를 선택하세요.</p>
 
       <div class="fp-list">
-        <button v-for="f in folders" :key="f" class="fp-item" :class="{ on: agent.folder === f }" @click="pick(f)">
+        <button v-for="f in folders" :key="f" class="fp-item" :class="{ on: agent.myFolder === f }" @click="pick(f)">
           <Icon name="folder" :size="15" class="fp-ic" />
           <span class="fp-name">{{ f }}</span>
-          <Icon v-if="agent.folder === f" name="check" :size="15" class="fp-check" />
+          <Icon v-if="agent.myFolder === f" name="check" :size="15" class="fp-check" />
         </button>
       </div>
 
