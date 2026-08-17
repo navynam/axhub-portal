@@ -34,6 +34,25 @@ export function removeKnowledgeFromGroup(k) {
   toast(`‘${k.name}’을(를) 그룹에서 제외했습니다.`, 'info')
 }
 
+/* ── 도구 그룹 ── */
+/** 전사 도구 그룹 생성 (중복 무시). 생성된 그룹명 반환 */
+export function addToolGroup(name) {
+  const clean = (name || '').trim()
+  if (!clean) return null
+  if (!store.toolGroups.includes(clean)) store.toolGroups.push(clean)
+  return clean
+}
+/** 도구를 그룹으로 이동 */
+export function moveToolToGroup(tool, group) {
+  tool.group = group
+  toast(`‘${tool.name}’을(를) ‘${group}’ 그룹으로 이동했습니다.`, 'ok')
+}
+/** 도구를 그룹에서 제외 */
+export function removeToolFromGroup(tool) {
+  tool.group = '미분류'
+  toast(`‘${tool.name}’을(를) 그룹에서 제외했습니다.`, 'info')
+}
+
 /* ── 담당자(오너) 변경 ── */
 /** 에이전트 담당자 변경 */
 export function changeAgentOwner(agent, name, dept) {

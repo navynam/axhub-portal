@@ -16,7 +16,7 @@ import ToolDetailModal from '../components/ToolDetailModal.vue'
 const tab = ref('mine')            // mine | all
 const typeFilter = ref('all')      // all | tool | mcp | middleware | skill
 const tagFilter = ref('')
-const deptFilter = ref('all')      // 업무부서 필터 (all | 조직명)
+const groupFilter = ref('all')     // 도구 그룹 필터 (all | 그룹명)
 const onlyNoPerm = ref(false)      // 권한 없음(미보유)만 보기
 const q = ref('')
 const view = ref('grid')           // grid | list
@@ -31,13 +31,12 @@ const TYPES = [
 ]
 const typeLabel = k => (TYPES.find(t => t.key === k) || {}).label || k
 
-// 업무부서(사용 조직) — 콤보 목록. 카드에는 각 도구의 dept 를 태그로 표시.
-const DEPTS = [
-  '고객채널', '영업채널', 'AX추진팀', '디지털전략팀', '데이터플랫폼팀', 'AI플랫폼팀',
-  '상품개발부', '심사부', '계리부', '준법감시부', '리스크관리부', '마케팅부',
-  '고객서비스부', '경영기획부', '재무기획부', '인사부', 'IT인프라팀', '정보보안팀',
-  '클라우드플랫폼팀', 'RPA자동화팀',
-]
+// 도구 그룹 — 상단 콤보 목록(권한 관리 › 그룹 관리에서 생성). 소속 도구가 있는 그룹 + 전사 그룹.
+const groupList = computed(() => {
+  const set = new Set(store.toolGroups)
+  resources.value.forEach(r => { if (r.group) set.add(r.group) })
+  return [...set]
+})
 
 // 부서·워크스페이스 (전체 목록 섹션 그룹)
 const WORKSPACES = [
@@ -58,7 +57,7 @@ const tabBase = computed(() => tab.value === 'mine' ? resources.value.filter(isM
 const filteredExceptType = computed(() => {
   const t = q.value.trim()
   return tabBase.value
-    .filter(r => deptFilter.value === 'all' || r.dept === deptFilter.value)
+    .filter(r => groupFilter.value === 'all' || r.group === groupFilter.value)
     .filter(r => !onlyNoPerm.value || !isMine(r))
     .filter(r => !tagFilter.value || (r.tags || []).includes(tagFilter.value))
     .filter(r => !t || (r.name + r.desc + r.owner + (r.dept || '') + (r.tags || []).join()).includes(t))
@@ -128,12 +127,12 @@ function cancelTool(r) {
         </button>
       </div>
 
-      <!-- 검색 + 업무부서 콤보 + 보기 -->
+      <!-- 검색 + 도구 그룹 콤보 + 보기 -->
       <div class="filters">
         <div class="search"><Icon name="search" :size="16" /><input v-model="q" placeholder="도구·미들웨어·스킬·MCP 검색" aria-label="검색" /></div>
-        <select class="select" v-model="deptFilter" aria-label="업무부서">
-          <option value="all">업무부서 전체</option>
-          <option v-for="d in DEPTS" :key="d" :value="d">{{ d }}</option>
+        <select class="select" v-model="groupFilter" aria-label="도구 그룹">
+          <option value="all">도구 그룹 전체</option>
+          <option v-for="g in groupList" :key="g" :value="g">{{ g }}</option>
         </select>
         <label class="tm-check" :class="{ on: onlyNoPerm }" title="권한 없는(미보유) 항목만 표시">
           <input type="checkbox" v-model="onlyNoPerm" /> 권한 없음만

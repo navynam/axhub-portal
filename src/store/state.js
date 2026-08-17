@@ -26,6 +26,10 @@ const AGENT_GROUP_OF = { 'ag-03': '재무·심사 봇', 'ag-06': '재무·심사
 const KN_GROUPS = ['규정·컴플라이언스', '재무·회계', '상품·심사']
 const KN_GROUP_OF = { 'kn-06': '규정·컴플라이언스', 'kn-03': '재무·회계', 'kn-04': '상품·심사', 'kn-05': '상품·심사' }
 
+// 전사 도구 그룹 — 기본은 유형(tool/skill/middleware/mcp)별로 배정
+const TOOL_GROUPS = ['검색·조회 도구', '생성·처리 스킬', '연동 미들웨어', 'MCP 서버']
+const TOOL_GROUP_BY_TYPE = { tool: '검색·조회 도구', skill: '생성·처리 스킬', middleware: '연동 미들웨어', mcp: 'MCP 서버' }
+
 // 요청/대화/토스트 등 임시 id 를 만들기 위한 전역 순번 발급기
 let seq = 100
 /** 다음 순번을 발급 (예: 'rq-' + nextId()) */
@@ -79,8 +83,9 @@ export const store = reactive({
       requester: '박서준', dept: '마케팅부', status: 'pending', createdAt: '2026-08-06' },
   ],
   boards: seedBoards,
-  // 리소스(도구·미들웨어·스킬·MCP) 권한 맵: { [이름]: { owner, perm, type, proto, desc, tags } }
-  resources: Object.fromEntries(seedResources.map(r => [r.name, { ...r }])),
+  // 리소스(도구·미들웨어·스킬·MCP) 권한 맵: { [이름]: { owner, perm, type, proto, desc, tags, group } }
+  resources: Object.fromEntries(seedResources.map(r => [r.name, { ...r, group: r.group || TOOL_GROUP_BY_TYPE[r.type] || '미분류' }])),
+  toolGroups: [...TOOL_GROUPS], // 전사 도구 그룹(관리자가 그룹 관리에서 생성)
   // 설정 > KEY 관리: MCP·Agent 등록용 API 키 목록 (설정 팝업에서 추가/삭제)
   keys: seedKeys.map(k => ({ ...k })),
 

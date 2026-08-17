@@ -1,55 +1,77 @@
 <script setup>
 /**
- * 그룹 관리 (권한 관리 하위) — 전사 에이전트/지식 그룹을 관리자가 관리.
- * 3분할: [그룹 리스트] → [선택 그룹의 멤버] → [전체 목록]
- *  · 전체 목록에서 카드를 드래그(또는 + 추가)해 선택 그룹에 담고, 멤버에서 ×로 제외.
- *  · 여기서 만든 그룹이 에이전트/지식 화면의 그룹(폴더) 필터가 된다.
+ * 그룹 관리 (권한 관리 하위) — 전사 에이전트/지식/도구 그룹을 관리자가 관리.
+ * 3분할: [그룹 리스트] → [선택 그룹의 멤버] → [전체 목록 / (도구)콤보 선택]
+ *  · 에이전트·지식: 전체 목록에서 카드를 드래그(또는 + 추가) → 그룹에 담기.
+ *  · 도구: 항목이 많아 오른쪽 콤보에서 선택해 그룹에 추가.
+ *  · 여기서 만든 그룹이 에이전트/지식/도구 화면의 그룹 필터가 된다.
  */
 import { ref, computed } from 'vue'
-import { store, addAgentGroup, moveAgentToFolder, removeAgentFromGroup, addKnGroup, moveKnowledgeToFolder, removeKnowledgeFromGroup } from '../store.js'
+import { store,
+  addAgentGroup, moveAgentToFolder, removeAgentFromGroup,
+  addKnGroup, moveKnowledgeToFolder, removeKnowledgeFromGroup,
+  addToolGroup, moveToolToGroup, removeToolFromGroup } from '../store.js'
 import Icon from '../components/Icon.vue'
 import PromptDialog from '../components/PromptDialog.vue'
 
-const tab = ref('agent') // agent | knowledge
+const tab = ref('agent') // agent | knowledge | tool
+const TYPE_LABEL = { tool: '도구', skill: '스킬', middleware: '미들웨어', mcp: 'MCP' }
+const isTool = computed(() => tab.value === 'tool')
 
-const groups = computed(() => (tab.value === 'agent' ? store.agentGroups : store.knGroups))
-const allItems = computed(() => (tab.value === 'agent' ? store.agents : store.knowledge))
-const memberField = it => (tab.value === 'agent' ? it.folder : it.group)
+const groups = computed(() => (tab.value === 'agent' ? store.agentGroups : tab.value === 'knowledge' ? store.knGroups : store.toolGroups))
+const allItems = computed(() => (tab.value === 'agent' ? store.agents : tab.value === 'knowledge' ? store.knowledge : Object.values(store.resources)))
+const keyOf = it => (isTool.value ? it.name : it.id)
+const memberField = it => (tab.value === 'agent' ? it.folder : it.group) // 지식·도구는 group
 const membersOf = g => allItems.value.filter(it => memberField(it) === g)
-const groupCount = g => membersOf(g).length
+const sqClass = computed(() => (tab.value === 'agent' ? 'sq-navy' : tab.value === 'knowledge' ? 'sq-green' : 'sq-amber'))
+const subOf = it => (isTool.value ? `${TYPE_LABEL[it.type] || '도구'} · ${it.owner}` : `${it.owner} · 담당 ${it.manager}`)
 
 const selected = ref('')
 const selValid = computed(() => selected.value && groups.value.includes(selected.value))
-// 탭 전환/그룹 생성 시 유효 그룹 자동 선택
 function ensureSelected() { if (!selValid.value) selected.value = groups.value[0] || '' }
-
-function switchTab(t) { tab.value = t; selected.value = groups.value[0] || '' }
+function switchTab(t) { tab.value = t; selected.value = groups.value[0] || ''; toolPick.value = '' }
 
 function assign(it) {
   if (!selValid.value) return
   if (tab.value === 'agent') moveAgentToFolder(it, selected.value)
-  else moveKnowledgeToFolder(it, selected.value)
+  else if (tab.value === 'knowledge') moveKnowledgeToFolder(it, selected.value)
+  else moveToolToGroup(it, selected.value)
 }
 function remove(it) {
   if (tab.value === 'agent') removeAgentFromGroup(it)
-  else removeKnowledgeFromGroup(it)
+  else if (tab.value === 'knowledge') removeKnowledgeFromGroup(it)
+  else removeToolFromGroup(it)
 }
 const inSelected = it => selValid.value && memberField(it) === selected.value
 
-// 드래그: 전체 목록 → 선택 그룹 멤버 영역
+// ── 드래그(에이전트·지식) ──
 const dragId = ref(null)
 const overDrop = ref(false)
 function onDragStart(id, e) { dragId.value = id; e.dataTransfer.effectAllowed = 'move' }
 function onDropToGroup() {
   overDrop.value = false
-  const it = allItems.value.find(x => x.id === dragId.value); dragId.value = null
+  const it = allItems.value.find(x => keyOf(x) === dragId.value); dragId.value = null
   if (it) assign(it)
 }
 
-// 새 그룹
+// ── 도구 콤보 선택 ──
+const toolPick = ref('')
+const toolOptions = computed(() => {
+  const notIn = Object.values(store.resources).filter(t => t.group !== selected.value)
+  const byType = {}
+  notIn.forEach(t => (byType[t.type] = byType[t.type] || []).push(t))
+  return Object.entries(byType).map(([type, items]) => ({ type, label: TYPE_LABEL[type] || type, items }))
+})
+function addToolPick() {
+  if (!toolPick.value || !selValid.value) return
+  const it = store.resources[toolPick.value]
+  if (it) { assign(it); toolPick.value = '' }
+}
+
+// ── 새 그룹 ──
 const showNew = ref(false)
 function createGroup(name) {
-  const g = tab.value === 'agent' ? addAgentGroup(name) : addKnGroup(name)
+  const g = tab.value === 'agent' ? addAgentGroup(name) : tab.value === 'knowledge' ? addKnGroup(name) : addToolGroup(name)
   showNew.value = false
   if (g) selected.value = g
 }
@@ -62,9 +84,13 @@ ensureSelected()
     <div class="seg-tabs" role="tablist">
       <button role="tab" :class="{ on: tab === 'agent' }" @click="switchTab('agent')"><Icon name="agent" :size="14" /> 에이전트 그룹</button>
       <button role="tab" :class="{ on: tab === 'knowledge' }" @click="switchTab('knowledge')"><Icon name="book" :size="14" /> 지식 그룹</button>
+      <button role="tab" :class="{ on: tab === 'tool' }" @click="switchTab('tool')"><Icon name="tool" :size="14" /> 도구 그룹</button>
     </div>
 
-    <p class="gm-lead">전사 {{ tab === 'agent' ? '에이전트' : '지식' }} 그룹을 관리합니다. 그룹을 선택하고 <b>전체 목록</b>에서 카드를 드래그하거나 <b>+ 추가</b>해 그룹에 담으세요. 여기서 만든 그룹이 {{ tab === 'agent' ? '에이전트' : '지식' }} 화면의 그룹 필터가 됩니다.</p>
+    <p class="gm-lead">전사 {{ tab === 'agent' ? '에이전트' : tab === 'knowledge' ? '지식' : '도구' }} 그룹을 관리합니다. 그룹을 선택하고
+      <template v-if="isTool"><b>오른쪽 콤보</b>에서 도구를 골라 그룹에 추가하세요.</template>
+      <template v-else><b>전체 목록</b>에서 카드를 드래그하거나 <b>+ 추가</b>해 그룹에 담으세요.</template>
+      여기서 만든 그룹이 {{ tab === 'agent' ? '에이전트' : tab === 'knowledge' ? '지식' : '도구' }} 화면의 그룹 필터가 됩니다.</p>
 
     <div class="gm3">
       <!-- ① 그룹 리스트 -->
@@ -72,7 +98,7 @@ ensureSelected()
         <div class="gm-colh"><span>그룹</span><button class="btn btn-primary btn-xs" @click="showNew = true"><Icon name="plus" :size="12" /> 새 그룹</button></div>
         <div class="gm-list">
           <button v-for="g in groups" :key="g" class="gm-gitem" :class="{ on: selected === g }" @click="selected = g">
-            <Icon name="folder" :size="14" /><span class="gm-gname">{{ g }}</span><span class="gm-n">{{ groupCount(g) }}</span>
+            <Icon name="folder" :size="14" /><span class="gm-gname">{{ g }}</span><span class="gm-n">{{ membersOf(g).length }}</span>
           </button>
           <div v-if="!groups.length" class="gm-empty">그룹이 없습니다. ‘새 그룹’으로 만들어 보세요.</div>
         </div>
@@ -82,44 +108,59 @@ ensureSelected()
       <div class="gm-col">
         <div class="gm-colh"><span>{{ selValid ? selected : '그룹 선택' }} <em v-if="selValid">· {{ membersOf(selected).length }}</em></span></div>
         <div class="gm-drop" :class="{ over: overDrop }"
-          @dragover.prevent="overDrop = selValid" @dragleave="overDrop = false" @drop="onDropToGroup">
+          @dragover.prevent="overDrop = selValid && !isTool" @dragleave="overDrop = false" @drop="onDropToGroup">
           <template v-if="selValid">
-            <div v-for="it in membersOf(selected)" :key="it.id" class="gm-chip">
-              <span class="gm-sq" :class="tab === 'agent' ? 'sq-navy' : 'sq-green'">{{ it.name.slice(0, 1) }}</span>
-              <div class="gm-chip-body"><div class="gm-chip-name">{{ it.name }}</div><div class="gm-chip-sub">{{ it.owner }} · 담당 {{ it.manager }}</div></div>
+            <div v-for="it in membersOf(selected)" :key="keyOf(it)" class="gm-chip">
+              <span class="gm-sq" :class="sqClass">{{ it.name.slice(0, 1) }}</span>
+              <div class="gm-chip-body"><div class="gm-chip-name">{{ it.name }}</div><div class="gm-chip-sub">{{ subOf(it) }}</div></div>
               <button class="gm-x" @click="remove(it)" title="그룹에서 제외"><Icon name="x" :size="13" /></button>
             </div>
-            <div v-if="!membersOf(selected).length" class="gm-empty drop">여기로 드래그하거나 오른쪽에서 <b>+ 추가</b></div>
+            <div v-if="!membersOf(selected).length" class="gm-empty drop">{{ isTool ? '오른쪽 콤보에서 도구를 선택해 추가하세요.' : '여기로 드래그하거나 오른쪽에서 + 추가' }}</div>
           </template>
           <div v-else class="gm-empty">왼쪽에서 그룹을 선택하세요.</div>
         </div>
       </div>
 
-      <!-- ③ 전체 목록 -->
+      <!-- ③ 전체 목록 (에이전트·지식) / 콤보 선택 (도구) -->
       <div class="gm-col">
-        <div class="gm-colh"><span>전체 {{ tab === 'agent' ? '에이전트' : '지식' }} · {{ allItems.length }}</span></div>
-        <div class="gm-list scroll">
-          <div v-for="it in allItems" :key="it.id" class="gm-chip" :class="{ dim: inSelected(it) }" draggable="true" @dragstart="onDragStart(it.id, $event)">
-            <span class="gm-sq" :class="tab === 'agent' ? 'sq-navy' : 'sq-green'">{{ it.name.slice(0, 1) }}</span>
-            <div class="gm-chip-body">
-              <div class="gm-chip-name">{{ it.name }}</div>
-              <div class="gm-chip-sub"><span class="gm-tag" v-if="memberField(it) && memberField(it) !== '미분류'">{{ memberField(it) }}</span><span v-else class="gm-tag none">미분류</span></div>
-            </div>
-            <button v-if="inSelected(it)" class="gm-added" disabled><Icon name="check" :size="13" /> 담김</button>
-            <button v-else class="gm-add" :disabled="!selValid" @click="assign(it)" title="선택 그룹에 추가"><Icon name="plus" :size="13" /> 추가</button>
+        <template v-if="isTool">
+          <div class="gm-colh"><span>도구 추가</span></div>
+          <div class="gm-toolbox">
+            <select class="select gm-select" v-model="toolPick" :disabled="!selValid" aria-label="도구 선택">
+              <option value="">도구 선택…</option>
+              <optgroup v-for="o in toolOptions" :key="o.type" :label="o.label">
+                <option v-for="t in o.items" :key="t.name" :value="t.name">{{ t.name }} · {{ t.group }}</option>
+              </optgroup>
+            </select>
+            <button class="btn btn-primary" :disabled="!toolPick || !selValid" @click="addToolPick"><Icon name="plus" :size="14" /> 그룹에 추가</button>
+            <p class="gm-toolhint">도구는 항목이 많아 <b>콤보에서 선택</b>해 선택한 그룹에 추가합니다. 유형(도구·스킬·미들웨어·MCP)별로 묶여 있습니다.</p>
           </div>
-        </div>
+        </template>
+        <template v-else>
+          <div class="gm-colh"><span>전체 {{ tab === 'agent' ? '에이전트' : '지식' }} · {{ allItems.length }}</span></div>
+          <div class="gm-list scroll">
+            <div v-for="it in allItems" :key="keyOf(it)" class="gm-chip" :class="{ dim: inSelected(it) }" draggable="true" @dragstart="onDragStart(keyOf(it), $event)">
+              <span class="gm-sq" :class="sqClass">{{ it.name.slice(0, 1) }}</span>
+              <div class="gm-chip-body">
+                <div class="gm-chip-name">{{ it.name }}</div>
+                <div class="gm-chip-sub"><span class="gm-tag" v-if="memberField(it) && memberField(it) !== '미분류'">{{ memberField(it) }}</span><span v-else class="gm-tag none">미분류</span></div>
+              </div>
+              <button v-if="inSelected(it)" class="gm-added" disabled><Icon name="check" :size="13" /> 담김</button>
+              <button v-else class="gm-add" :disabled="!selValid" @click="assign(it)" title="선택 그룹에 추가"><Icon name="plus" :size="13" /> 추가</button>
+            </div>
+          </div>
+        </template>
       </div>
     </div>
 
     <PromptDialog v-if="showNew" title="새 그룹 만들기" label="그룹 이름"
-      :placeholder="tab === 'agent' ? '예: 재무·심사 봇' : '예: 규정·컴플라이언스'" confirm-text="그룹 생성"
+      :placeholder="tab === 'agent' ? '예: 재무·심사 봇' : tab === 'knowledge' ? '예: 규정·컴플라이언스' : '예: 검색·조회 도구'" confirm-text="그룹 생성"
       @confirm="createGroup" @close="showNew = false" />
   </div>
 </template>
 
 <style scoped>
-.gm-lead { font-size: 13px; color: var(--gray); line-height: 1.55; margin: 16px 0 16px; max-width: 96ch; }
+.gm-lead { font-size: 13px; color: var(--gray); line-height: 1.55; margin: 16px 0 16px; max-width: 100ch; }
 .gm-lead b { color: var(--navy); font-weight: 700; }
 
 .gm3 { display: grid; grid-template-columns: 260px 1fr 1fr; gap: 14px; align-items: start; }
@@ -127,10 +168,11 @@ ensureSelected()
 .gm-colh { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; font-weight: 800; color: var(--ink); padding: 2px 4px 10px; }
 .gm-colh em { font-style: normal; color: var(--gray-lt); font-weight: 700; }
 
-.gm-list, .gm-drop { background: var(--canvas); border: 1px solid var(--line); border-radius: var(--r-md); padding: 8px; display: flex; flex-direction: column; gap: 8px; min-height: 360px; }
+.gm-list, .gm-drop, .gm-toolbox { background: var(--canvas); border: 1px solid var(--line); border-radius: var(--r-md); padding: 8px; display: flex; flex-direction: column; gap: 8px; min-height: 360px; }
 .gm-list.scroll, .gm-drop { max-height: 620px; overflow-y: auto; }
 .gm-drop { border-style: dashed; border-color: var(--line-strong); }
 .gm-drop.over { border-color: var(--navy); background: var(--navy-soft); border-style: solid; }
+.gm-toolbox { padding: 14px; gap: 12px; min-height: auto; }
 
 .gm-gitem { display: flex; align-items: center; gap: 8px; padding: 10px 11px; border-radius: 9px; background: var(--card); border: 1px solid var(--line); cursor: pointer; font-size: 13px; font-weight: 700; color: var(--gray); }
 .gm-gitem:hover { border-color: var(--line-strong); color: var(--ink); }
@@ -159,6 +201,11 @@ ensureSelected()
 .gm-add:hover:not(:disabled) { background: var(--navy); color: #fff; }
 .gm-add:disabled { opacity: .4; cursor: not-allowed; }
 .gm-added { color: var(--green); background: transparent; cursor: default; }
+
+.gm-select { width: 100%; }
+.gm-toolbox .btn { width: 100%; justify-content: center; }
+.gm-toolhint { font-size: 11.5px; color: var(--gray-lt); line-height: 1.5; margin: 2px 0 0; }
+.gm-toolhint b { color: var(--gray); }
 
 .gm-empty { font-size: 12px; color: var(--gray-lt); text-align: center; padding: 20px 8px; }
 .gm-empty.drop { border: 1px dashed var(--line-strong); border-radius: 8px; }
