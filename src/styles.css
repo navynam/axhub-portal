@@ -661,6 +661,12 @@ button.tree-caret:hover { background: var(--line-strong); }
 .kn-card-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line); }
 .kn-card-btns { display: flex; gap: 8px; width: 100%; }
 .kn-card-btns .btn { flex: 1 1 auto; white-space: nowrap; }
+
+/* 전체 지식 채팅 CTA (상단, 눈에 잘 띄게 크게) */
+.kn-chatcta { height: 44px; padding: 0 22px; font-size: 15px; font-weight: 800; border-radius: 12px;
+  gap: 8px; box-shadow: 0 6px 16px rgba(0, 70, 255, .28); flex-shrink: 0; }
+.kn-chatcta:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0, 70, 255, .34); }
+.kn-chatcta svg { flex-shrink: 0; }
 .scope-tag { font-size: 10.5px; font-weight: 700; color: var(--gray); background: var(--canvas);
   border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; margin-left: 5px; vertical-align: middle; }
 

@@ -102,7 +102,9 @@ function openDetail(k) {
         <button :class="{ on: view === 'list' }" @click="view = 'list'" aria-label="리스트 보기" title="리스트 보기"><Icon name="list" :size="16" /></button>
       </div>
       <span class="grow" style="flex:1"></span>
-      <button class="btn btn-sm" :class="mode === 'chat' ? 'btn-primary' : 'btn-ghost'" @click="mode === 'chat' ? goExplore() : enterChat()"><Icon name="chat" :size="14" /> 지식 채팅</button>
+      <button class="btn btn-primary kn-chatcta" @click="mode === 'chat' ? goExplore() : enterChat()">
+        <Icon name="chat" :size="18" /> {{ mode === 'chat' ? '탐색으로 돌아가기' : '전체 지식으로 채팅' }}
+      </button>
     </div>
 
     <!-- 그룹 바 (탐색 모드) — 전사 지식 그룹(권한 관리 › 그룹 관리) -->
@@ -148,10 +150,8 @@ function openDetail(k) {
           <div class="kn-card-actions">
             <StatusPill :perm="k.perm" small />
             <div class="kn-card-btns">
-              <template v-if="k.perm === 'granted' || k.perm === 'owner'">
-                <button class="btn btn-ghost btn-sm" @click="openDetail(k)">상세 보기</button>
-                <button class="btn btn-primary btn-sm" @click="chatWith(k)"><Icon name="chat" :size="12" /> 지식 채팅</button>
-              </template>
+              <button class="btn btn-ghost btn-sm" @click="openDetail(k)">상세 보기</button>
+              <button v-if="k.perm === 'granted' || k.perm === 'owner'" class="btn btn-primary btn-sm" @click="chatWith(k)"><Icon name="chat" :size="12" /> 지식 채팅</button>
               <button v-else-if="k.perm === 'pending'" class="btn btn-ghost btn-sm" @click="cancelFor(k)">요청 취소</button>
               <button v-else class="btn btn-gray btn-sm" @click="openRequest('knowledge', k)">{{ k.perm === 'denied' ? '재요청' : '권한 요청' }}</button>
             </div>
@@ -169,10 +169,8 @@ function openDetail(k) {
             <div class="kn-meta">문서 {{ k.docs.toLocaleString() }}건 · 연결 Agent {{ k.linked }} · 최신화 {{ k.updated }}</div>
           </div>
           <StatusPill :perm="k.perm" />
-          <template v-if="k.perm === 'granted' || k.perm === 'owner'">
-            <button class="btn btn-ghost btn-sm" @click="openDetail(k)">상세 보기</button>
-            <button class="btn btn-primary btn-sm" @click="chatWith(k)"><Icon name="chat" :size="12" /> 지식 채팅</button>
-          </template>
+          <button class="btn btn-ghost btn-sm" @click="openDetail(k)">상세 보기</button>
+          <button v-if="k.perm === 'granted' || k.perm === 'owner'" class="btn btn-primary btn-sm" @click="chatWith(k)"><Icon name="chat" :size="12" /> 지식 채팅</button>
           <button v-else-if="k.perm === 'pending'" class="btn btn-ghost btn-sm" @click="cancelFor(k)">요청 취소</button>
           <button v-else class="btn btn-gray btn-sm" @click="openRequest('knowledge', k)">{{ k.perm === 'denied' ? '재요청' : '권한 요청' }}</button>
         </div>
