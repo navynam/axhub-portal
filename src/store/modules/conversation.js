@@ -102,6 +102,21 @@ export function renameConversation(id, title) {
   if (conv && clean) conv.title = clean
 }
 
+/** 홈 '물어보기' → 기본(디폴트) 에이전트 채팅으로 이동해 질문 전송 */
+export function askFromHome(text) {
+  const clean = (text || '').trim()
+  if (!clean) return false
+  // 디폴트 에이전트: 내 업무 요약(ag-01) → 실행 가능한 내 소유 에이전트 → 첫 에이전트
+  const agent = store.agents.find(a => a.id === 'ag-01' && agentReady(a))
+    || store.agents.find(a => a.perm === 'owner' && agentReady(a))
+    || store.agents.find(a => agentReady(a))
+  if (!agent) { toast('실행 가능한 기본 에이전트가 없습니다.', 'warn'); return false }
+  openRun(agent)          // currentAgent + page='run'
+  newConversation()       // 이 질문을 위한 새 대화
+  sendMessage(clean)      // 질문 전송(모의 응답 스트리밍)
+  return true
+}
+
 /** 대시보드 등에서 특정 대화를 바로 이어서 열기 */
 export function resumeConversation(conv) {
   const agent = store.agents.find(a => a.id === conv.agentId)

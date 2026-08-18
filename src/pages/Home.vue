@@ -6,7 +6,7 @@
  * 데이터·동작은 우리 스토어 기준(실제 에이전트, 실행/권한요청).
  */
 import { ref, computed } from 'vue'
-import { store, go, openRun, agentReady, resourcePerm, openRequest, toast } from '../store.js'
+import { store, go, openRun, agentReady, resourcePerm, openRequest, askFromHome } from '../store.js'
 import Icon from '../components/Icon.vue'
 import AgentCarousel from '../components/AgentCarousel.vue'
 
@@ -24,14 +24,13 @@ function cardClick(it) {
   else openRun(it.agent)
 }
 
-// 물어보기 박스 → 에이전트 카탈로그로 안내(데모)
+// 물어보기 박스 → 디폴트 에이전트 채팅으로 이동해 질문 전송
 const ask = ref('')
 function submitAsk() {
   const t = ask.value.trim()
   if (!t) return
-  toast(`‘${t.slice(0, 20)}${t.length > 20 ? '…' : ''}’ 관련 에이전트를 찾아드릴게요.`, 'ok')
   ask.value = ''
-  go('agents')
+  askFromHome(t)
 }
 </script>
 
