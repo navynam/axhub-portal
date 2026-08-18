@@ -29,7 +29,7 @@ const subOf = it => (isTool.value ? `${TYPE_LABEL[it.type] || '도구'} · ${it.
 const selected = ref('')
 const selValid = computed(() => selected.value && groups.value.includes(selected.value))
 function ensureSelected() { if (!selValid.value) selected.value = groups.value[0] || '' }
-function switchTab(t) { tab.value = t; selected.value = groups.value[0] || ''; toolPick.value = '' }
+function switchTab(t) { tab.value = t; selected.value = groups.value[0] || ''; toolType.value = 'tool' }
 
 function assign(it) {
   if (!selValid.value) return
@@ -54,19 +54,16 @@ function onDropToGroup() {
   if (it) assign(it)
 }
 
-// ── 도구 콤보 선택 ──
-const toolPick = ref('')
-const toolOptions = computed(() => {
-  const notIn = Object.values(store.resources).filter(t => t.group !== selected.value)
-  const byType = {}
-  notIn.forEach(t => (byType[t.type] = byType[t.type] || []).push(t))
-  return Object.entries(byType).map(([type, items]) => ({ type, label: TYPE_LABEL[type] || type, items }))
-})
-function addToolPick() {
-  if (!toolPick.value || !selValid.value) return
-  const it = store.resources[toolPick.value]
-  if (it) { assign(it); toolPick.value = '' }
-}
+// ── 도구 추가: 유형(도구/MCP/미들웨어/스킬) 선택 → 해당 유형 도구 목록에서 추가 ──
+const TOOL_TYPES = [
+  { key: 'tool', label: '도구' },
+  { key: 'mcp', label: 'MCP' },
+  { key: 'middleware', label: '미들웨어' },
+  { key: 'skill', label: '스킬' },
+]
+const toolType = ref('tool')
+const toolsByType = computed(() => Object.values(store.resources).filter(t => t.type === toolType.value))
+const toolTypeCount = k => Object.values(store.resources).filter(t => t.type === k).length
 
 // ── 새 그룹 ──
 const showNew = ref(false)
@@ -126,14 +123,21 @@ ensureSelected()
         <template v-if="isTool">
           <div class="gm-colh"><span>도구 추가</span></div>
           <div class="gm-toolbox">
-            <select class="select gm-select" v-model="toolPick" :disabled="!selValid" aria-label="도구 선택">
-              <option value="">도구 선택…</option>
-              <optgroup v-for="o in toolOptions" :key="o.type" :label="o.label">
-                <option v-for="t in o.items" :key="t.name" :value="t.name">{{ t.name }} · {{ t.group }}</option>
-              </optgroup>
+            <select class="select gm-select" v-model="toolType" aria-label="도구 유형 선택">
+              <option v-for="tt in TOOL_TYPES" :key="tt.key" :value="tt.key">{{ tt.label }} ({{ toolTypeCount(tt.key) }})</option>
             </select>
-            <button class="btn btn-primary" :disabled="!toolPick || !selValid" @click="addToolPick"><Icon name="plus" :size="14" /> 그룹에 추가</button>
-            <p class="gm-toolhint">도구는 항목이 많아 <b>콤보에서 선택</b>해 선택한 그룹에 추가합니다. 유형(도구·스킬·미들웨어·MCP)별로 묶여 있습니다.</p>
+            <div class="gm-toollist">
+              <div v-for="t in toolsByType" :key="t.name" class="gm-chip">
+                <span class="gm-sq sq-amber">{{ t.name.slice(0, 1) }}</span>
+                <div class="gm-chip-body">
+                  <div class="gm-chip-name">{{ t.name }}</div>
+                  <div class="gm-chip-sub"><span class="gm-tag" v-if="t.group && t.group !== '미분류'">{{ t.group }}</span><span v-else class="gm-tag none">미분류</span></div>
+                </div>
+                <button v-if="t.group === selected && selValid" class="gm-added" disabled><Icon name="check" :size="13" /> 담김</button>
+                <button v-else class="gm-add" :disabled="!selValid" @click="assign(t)" title="선택 그룹에 추가"><Icon name="plus" :size="13" /> 추가</button>
+              </div>
+              <div v-if="!toolsByType.length" class="gm-empty">해당 유형의 도구가 없습니다.</div>
+            </div>
           </div>
         </template>
         <template v-else>
@@ -202,10 +206,9 @@ ensureSelected()
 .gm-add:disabled { opacity: .4; cursor: not-allowed; }
 .gm-added { color: var(--green); background: transparent; cursor: default; }
 
-.gm-select { width: 100%; }
-.gm-toolbox .btn { width: 100%; justify-content: center; }
-.gm-toolhint { font-size: 11.5px; color: var(--gray-lt); line-height: 1.5; margin: 2px 0 0; }
-.gm-toolhint b { color: var(--gray); }
+.gm-toolbox { min-height: 360px; max-height: 620px; }
+.gm-select { width: 100%; flex-shrink: 0; }
+.gm-toollist { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; min-height: 0; }
 
 .gm-empty { font-size: 12px; color: var(--gray-lt); text-align: center; padding: 20px 8px; }
 .gm-empty.drop { border: 1px dashed var(--line-strong); border-radius: 8px; }
