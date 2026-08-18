@@ -119,14 +119,6 @@ function cancelTool(r) {
         <button role="tab" :aria-selected="tab === 'all'" :class="{ on: tab === 'all' }" @click="tab = 'all'">전체 목록<span class="n">{{ resources.length }}</span></button>
       </div>
 
-      <!-- 유형 탭 -->
-      <div class="seg-tabs" role="tablist">
-        <button v-for="t in TYPES" :key="t.key" role="tab" :aria-selected="typeFilter === t.key"
-          :class="{ on: typeFilter === t.key }" @click="setType(t.key)">
-          <Icon v-if="t.ico" :name="t.ico" :size="13" />{{ t.label }}<span class="n">{{ typeCount(t.key) }}</span>
-        </button>
-      </div>
-
       <!-- 검색 + 도구 그룹 콤보 + 보기 -->
       <div class="filters">
         <div class="search"><Icon name="search" :size="16" /><input v-model="q" placeholder="도구·미들웨어·스킬·MCP 검색" aria-label="검색" /></div>
@@ -141,6 +133,14 @@ function cancelTool(r) {
           <button :class="{ on: view === 'grid' }" @click="view = 'grid'" aria-label="카드 보기" title="카드 보기"><Icon name="grid" :size="16" /></button>
           <button :class="{ on: view === 'list' }" @click="view = 'list'" aria-label="리스트 보기" title="리스트 보기"><Icon name="list" :size="16" /></button>
         </div>
+      </div>
+
+      <!-- 유형 탭 (검색 아래로 배치) -->
+      <div class="seg-tabs" role="tablist">
+        <button v-for="t in TYPES" :key="t.key" role="tab" :aria-selected="typeFilter === t.key"
+          :class="{ on: typeFilter === t.key }" @click="setType(t.key)">
+          <Icon v-if="t.ico" :name="t.ico" :size="13" />{{ t.label }}<span class="n">{{ typeCount(t.key) }}</span>
+        </button>
       </div>
     </div>
 
