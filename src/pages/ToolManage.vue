@@ -112,48 +112,48 @@ function cancelTool(r) {
 
 <template>
   <div>
-    <div class="catalog-toolbar">
-      <!-- 상단 탭 (에이전트·지식과 동일한 세그먼트 스타일) -->
-      <div class="seg-tabs" role="tablist">
-        <button role="tab" :aria-selected="tab === 'mine'" :class="{ on: tab === 'mine' }" @click="tab = 'mine'">내가 사용할 수 있는 목록<span class="n">{{ mineTotal }}</span></button>
-        <button role="tab" :aria-selected="tab === 'all'" :class="{ on: tab === 'all' }" @click="tab = 'all'">전체 목록<span class="n">{{ resources.length }}</span></button>
+    <!-- 상단 툴바 (에이전트·지식과 공통) -->
+    <div class="ptb">
+      <div class="ptb-tabs" role="tablist">
+        <button role="tab" :aria-selected="tab === 'mine'" :class="{ on: tab === 'mine' }" @click="tab = 'mine'">내가 사용할 수 있는 목록<span class="ptb-tn">{{ mineTotal }}</span></button>
+        <button role="tab" :aria-selected="tab === 'all'" :class="{ on: tab === 'all' }" @click="tab = 'all'">전체 목록<span class="ptb-tn">{{ resources.length }}</span></button>
       </div>
 
-      <!-- 검색 + 도구 그룹 콤보 + 보기 -->
-      <div class="filters">
-        <div class="search"><Icon name="search" :size="16" /><input v-model="q" placeholder="도구·미들웨어·스킬·MCP 검색" aria-label="검색" /></div>
-        <select class="select" v-model="groupFilter" aria-label="도구 그룹">
+      <div class="ptb-filters">
+        <label class="ptb-search">
+          <Icon name="search" :size="16" />
+          <input v-model="q" placeholder="도구·미들웨어·스킬·MCP 검색" aria-label="검색" />
+          <button v-if="q" class="ptb-x" @click="q = ''" aria-label="검색어 지우기"><Icon name="x" :size="13" /></button>
+        </label>
+        <select class="ptb-select" v-model="groupFilter" aria-label="도구 그룹">
           <option value="all">도구 그룹 전체</option>
           <option v-for="g in groupList" :key="g" :value="g">{{ g }}</option>
         </select>
         <label class="tm-check" :class="{ on: onlyNoPerm }" title="권한 없는(미보유) 항목만 표시">
           <input type="checkbox" v-model="onlyNoPerm" /> 권한 없음만
         </label>
-        <div class="view-toggle" role="group" aria-label="보기 방식">
+        <div class="ptb-view" role="group" aria-label="보기 방식">
           <button :class="{ on: view === 'grid' }" @click="view = 'grid'" aria-label="카드 보기" title="카드 보기"><Icon name="grid" :size="16" /></button>
           <button :class="{ on: view === 'list' }" @click="view = 'list'" aria-label="리스트 보기" title="리스트 보기"><Icon name="list" :size="16" /></button>
         </div>
       </div>
 
-      <!-- 유형 탭 (검색 아래로 배치) -->
-      <div class="seg-tabs" role="tablist">
-        <button v-for="t in TYPES" :key="t.key" role="tab" :aria-selected="typeFilter === t.key"
-          :class="{ on: typeFilter === t.key }" @click="setType(t.key)">
-          <Icon v-if="t.ico" :name="t.ico" :size="13" />{{ t.label }}<span class="n">{{ typeCount(t.key) }}</span>
+      <!-- 유형 분류 (검색 아래) -->
+      <div class="ptb-chipbar" role="group" aria-label="유형">
+        <button v-for="t in TYPES" :key="t.key" class="ptb-chip" :class="{ on: typeFilter === t.key }" @click="setType(t.key)">
+          <Icon v-if="t.ico" :name="t.ico" :size="13" />{{ t.label }}<span class="ptb-fn">{{ typeCount(t.key) }}</span>
         </button>
       </div>
     </div>
 
     <!-- 태그 필터 (한 줄 · 좌우 스크롤) -->
-    <div class="tm-filters" v-if="allTags.length">
-      <div class="tm-frow tm-tags">
-        <button class="tag-nav" @click="scrollTags(-1)" aria-label="태그 왼쪽으로" title="왼쪽으로"><Icon name="back" :size="14" /></button>
-        <div class="tag-track" ref="tagTrack">
-          <button v-for="t in allTags" :key="t" class="filter-chip" :class="{ on: tagFilter === t }" @click="toggleTag(t)">{{ t }}</button>
-        </div>
-        <button class="tag-nav" @click="scrollTags(1)" aria-label="태그 오른쪽으로" title="오른쪽으로"><Icon name="arrow" :size="14" /></button>
-        <button v-if="tagFilter" class="filter-chip clear" @click="tagFilter = ''"><Icon name="x" :size="11" /> 초기화</button>
+    <div class="ptb-tagrow" v-if="allTags.length">
+      <button class="ptb-tagnav" @click="scrollTags(-1)" aria-label="태그 왼쪽으로" title="왼쪽으로"><Icon name="back" :size="14" /></button>
+      <div class="ptb-tagtrack" ref="tagTrack">
+        <button v-for="t in allTags" :key="t" class="ptb-tag" :class="{ on: tagFilter === t }" @click="toggleTag(t)">{{ t }}</button>
       </div>
+      <button class="ptb-tagnav" @click="scrollTags(1)" aria-label="태그 오른쪽으로" title="오른쪽으로"><Icon name="arrow" :size="14" /></button>
+      <button v-if="tagFilter" class="ptb-tagclear" @click="tagFilter = ''"><Icon name="x" :size="11" /> 초기화</button>
     </div>
 
     <!-- 카드/리스트 -->

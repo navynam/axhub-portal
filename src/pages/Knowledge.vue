@@ -84,34 +84,34 @@ function openDetail(k) {
 
 <template>
   <div :class="{ 'kn-fill': mode === 'chat' }">
-    <!-- 탭 -->
-    <div class="seg-tabs" role="tablist">
-      <button role="tab" :class="{ on: tab === 'usable' && mode === 'explore' }" @click="tab = 'usable'; mode = 'explore'">
-        사용가능 지식<span class="n">{{ tabCount('usable') }}</span>
-      </button>
-      <button role="tab" :class="{ on: tab === 'all' && mode === 'explore' }" @click="tab = 'all'; mode = 'explore'">
-        전체 지식<span class="n">{{ tabCount('all') }}</span>
-      </button>
-    </div>
-
-    <!-- 필터 + 액션 -->
-    <div class="filters" style="margin-bottom:4px">
-      <div class="search" style="flex:1;max-width:360px"><Icon name="search" :size="16" /><input v-model="q" placeholder="지식 검색 (이름·설명·소유)" aria-label="지식 검색" /></div>
-      <div class="view-toggle" role="group" aria-label="보기 방식" v-if="mode === 'explore'">
-        <button :class="{ on: view === 'grid' }" @click="view = 'grid'" aria-label="카드 보기" title="카드 보기"><Icon name="grid" :size="16" /></button>
-        <button :class="{ on: view === 'list' }" @click="view = 'list'" aria-label="리스트 보기" title="리스트 보기"><Icon name="list" :size="16" /></button>
+    <!-- 상단 툴바 (에이전트·도구와 공통) -->
+    <div class="ptb">
+      <div class="ptb-tabs" role="tablist">
+        <button role="tab" :class="{ on: tab === 'usable' && mode === 'explore' }" @click="tab = 'usable'; mode = 'explore'">사용가능 지식<span class="ptb-tn">{{ tabCount('usable') }}</span></button>
+        <button role="tab" :class="{ on: tab === 'all' && mode === 'explore' }" @click="tab = 'all'; mode = 'explore'">전체 지식<span class="ptb-tn">{{ tabCount('all') }}</span></button>
       </div>
-      <span class="grow" style="flex:1"></span>
-      <button class="btn btn-primary kn-chatcta" @click="mode === 'chat' ? goExplore() : enterChat()">
-        <Icon name="chat" :size="18" /> {{ mode === 'chat' ? '탐색으로 돌아가기' : '전체 지식으로 채팅' }}
-      </button>
-    </div>
 
-    <!-- 그룹 바 (탐색 모드) — 전사 지식 그룹(권한 관리 › 그룹 관리) -->
-    <div class="folder-bar" role="group" aria-label="그룹" v-if="mode === 'explore'">
-      <button v-for="f in folderList" :key="f.id" class="folder-chip" :class="{ on: folderFilter === f.id }" @click="folderFilter = f.id">
-        <Icon :name="f.id === 'all' ? 'grid' : 'folder'" :size="13" />{{ f.name }}<span class="fc-n">{{ folderCount(f.id) }}</span>
-      </button>
+      <div class="ptb-filters">
+        <label class="ptb-search">
+          <Icon name="search" :size="16" />
+          <input v-model="q" placeholder="지식 검색 (이름·설명·소유)" aria-label="지식 검색" />
+          <button v-if="q" class="ptb-x" @click="q = ''" aria-label="검색어 지우기"><Icon name="x" :size="13" /></button>
+        </label>
+        <div class="ptb-view" role="group" aria-label="보기 방식" v-if="mode === 'explore'">
+          <button :class="{ on: view === 'grid' }" @click="view = 'grid'" aria-label="카드 보기" title="카드 보기"><Icon name="grid" :size="16" /></button>
+          <button :class="{ on: view === 'list' }" @click="view = 'list'" aria-label="리스트 보기" title="리스트 보기"><Icon name="list" :size="16" /></button>
+        </div>
+        <span style="flex:1"></span>
+        <button class="btn btn-primary kn-chatcta" @click="mode === 'chat' ? goExplore() : enterChat()">
+          <Icon name="chat" :size="18" /> {{ mode === 'chat' ? '탐색으로 돌아가기' : '전체 지식으로 채팅' }}
+        </button>
+      </div>
+
+      <div class="ptb-chipbar" role="group" aria-label="그룹" v-if="mode === 'explore'">
+        <button v-for="f in folderList" :key="f.id" class="ptb-chip" :class="{ on: folderFilter === f.id }" @click="folderFilter = f.id">
+          <Icon :name="f.id === 'all' ? 'grid' : 'folder'" :size="13" />{{ f.name }}<span class="ptb-fn">{{ folderCount(f.id) }}</span>
+        </button>
+      </div>
     </div>
 
     <!-- 지식 채팅 -->
