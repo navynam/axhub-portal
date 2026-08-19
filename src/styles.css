@@ -93,8 +93,8 @@ input, select, textarea { font: inherit; color: var(--ink); }
 .side-logo { display: flex; align-items: center; color: var(--ink); font-size: 20px; font-weight: 700; letter-spacing: -.3px; white-space: nowrap; }
 .side-logo .ax { color: var(--navy); font-weight: 900; margin-right: 5px; }
 .side-nav { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
-.side-nav button { position: relative; display: flex; align-items: center; gap: 12px; padding: 9px 10px; border-radius: 16px;
-  font-weight: 700; font-size: 15px; color: var(--ink); transition: background .14s, color .14s; }
+.side-nav button { position: relative; display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 16px;
+  font-weight: 700; font-size: 15px; letter-spacing: -.3px; line-height: 1.5; color: var(--ink); transition: background .14s, color .14s; }
 .side-nav button:hover { background: var(--canvas); }
 .side-nav button.on { background: var(--navy-soft); color: var(--navy); }
 .side-nav .ico { display: flex; color: var(--gray); }

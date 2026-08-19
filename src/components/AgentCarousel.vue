@@ -31,12 +31,12 @@ function scroll(dir) { clip.value?.scrollBy({ left: dir * STEP, behavior: 'smoot
 <style scoped>
 .acar {
   --p3:#9db8f0; --n5:#c9ccd0; --n4:#dedfe2; --white:#fff; --cardbg:#f8fafc; --ink:#22252b; --sub:#889099;
-  position: relative; height: 100px; display: flex; align-items: center;
+  position: relative; height: 112px; display: flex; align-items: center;
 }
 :root[data-theme="dark"] .acar {
   --p3:#3a4a73; --n5:#3a4353; --n4:#2a313c; --white:#171c24; --cardbg:#1b222c; --ink:#eaedf2; --sub:#7f8a99;
 }
-.acar-clip { display: flex; align-items: center; gap: 12px; width: 100%; height: 100px; padding: 10px; margin: -10px;
+.acar-clip { display: flex; align-items: center; gap: 12px; width: 100%; height: 112px; padding: 12px 10px; margin: -12px -10px;
   overflow-x: auto; scroll-behavior: smooth; scrollbar-width: none;
   /* 잘리는 끝단을 배경과 어우러지게 부드럽게 페이드(색 무관 마스크) */
   -webkit-mask-image: linear-gradient(to right, transparent 0, #000 36px, #000 calc(100% - 66px), transparent 100%);

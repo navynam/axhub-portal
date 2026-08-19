@@ -96,34 +96,39 @@ function submitAsk() {
 .home2 > * { position: relative; z-index: 1; }
 :root[data-theme="dark"] .home2::before { opacity: .5; }
 
-/* HERO */
-.hero2 { flex: 1; min-height: 200px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(20px, 3vh, 44px); }
+/* HERO — 기획 기준: hero-inner gap 50 / copy gap 12 / h1 32·600 / p 20·300 */
+.hero2 { flex: 1; min-height: 200px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(28px, 4.5vh, 50px); }
 .hero2-copy { position: relative; text-align: center; display: flex; flex-direction: column; gap: 12px; }
-.hero2-copy h1 { font-size: clamp(22px, 3vw, 32px); font-weight: 600; line-height: 1.3; }
-.hero2-copy p { font-size: clamp(15px, 1.6vw, 20px); font-weight: 300; color: var(--sub); }
+.hero2-copy h1 { font-size: clamp(22px, 3vw, 32px); font-weight: 600; line-height: 1.25; }
+.hero2-copy p { font-size: clamp(15px, 1.6vw, 20px); font-weight: 300; color: var(--sub); letter-spacing: -.02em; }
 
-.ask2 { position: relative; width: min(729px, 92%); min-height: 120px; padding: 20px 24px;
+/* 물어보기 박스 — 기획 기준: 729×131 / padding 20 30 / radius 20 / border rgba(109,158,255,.8) */
+.ask2 { position: relative; width: min(729px, 92%); min-height: 131px; padding: 20px 30px;
   background: var(--surface-2, #fff); border: 1px solid rgba(109,158,255,.8); border-radius: 20px;
-  box-shadow: 0 2px 12px rgba(36,133,255,.10); display: flex; flex-direction: column; justify-content: space-between; gap: 12px;
+  box-shadow: 0 2px 11px rgba(36,133,255,.10); display: flex; flex-direction: column; justify-content: space-between; gap: 14px;
   transition: border-color .2s, box-shadow .2s; }
 :root[data-theme="dark"] .ask2 { background: #171c24; border-color: rgba(91,135,255,.55); }
 .ask2:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(26,75,245,.10); }
 .ask2 textarea { border: 0; outline: 0; resize: none; background: transparent; font: inherit; font-size: 16px; line-height: 1.5; color: var(--ink); min-height: 44px; }
 .ask2 textarea::placeholder { color: var(--n2); }
 .ask2-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
-.ask2-attach { display: flex; align-items: center; gap: 4px; padding: 5px 12px; border: 1px solid var(--n4); border-radius: 100px; font: inherit; font-size: 13px; color: var(--sub); cursor: pointer; }
-.ask2-send { width: 34px; height: 34px; border-radius: 100px; background: var(--brand); color: #fff; display: grid; place-items: center; cursor: pointer; transition: transform .15s, background .15s; }
+.ask2-attach { display: flex; align-items: center; gap: 4px; padding: 4px 12px; border: 1px solid var(--n4); border-radius: 100px; font: inherit; font-size: 13px; color: var(--sub); cursor: pointer; }
+.ask2-send { width: 32px; height: 32px; border-radius: 100px; background: var(--brand); color: #fff; display: grid; place-items: center; cursor: pointer; transition: transform .15s, background .15s; }
 .ask2-send:hover:not(:disabled) { background: #2650d6; transform: scale(1.08); }
 .ask2-send:disabled { opacity: .5; cursor: not-allowed; }
 
-/* 카드 섹션 (고정 높이 — 스크롤 없이 하단 정렬) */
-.home2-sections { flex-shrink: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; padding: 8px 0 4px; }
-.home2-col { display: flex; flex-direction: column; gap: clamp(20px, 3vh, 36px); min-width: 0; }
+/* 카드 섹션 — 기획 기준: 컬럼 간격 60 / 섹션 세로 간격 60 / sec 내부 16 / 좌우 패딩 40·30 */
+.home2-sections { flex-shrink: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; padding: 20px 0 4px; }
+.home2-col { display: flex; flex-direction: column; gap: clamp(30px, 5vh, 60px); min-width: 0; }
+.home2-col:first-child { padding-right: clamp(0px, 1vw, 10px); }
+.home2-col:last-child { padding-left: clamp(0px, 1vw, 10px); }
 .home2-sec { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-.home2-sec-title { display: flex; align-items: center; gap: 10px; padding: 0 8px; }
-.home2-sec-title p { flex: 1; font-size: 16px; font-weight: 700; }
+.home2-sec-title { display: flex; align-items: center; gap: 10px; padding: 0 30px 0 8px; }
+.home2-sec-title p { flex: 1; font-size: 16px; font-weight: 700; letter-spacing: -.32px; }
 .home2-sec-title button { color: var(--sub); background: transparent; border: 0; cursor: pointer; display: grid; place-items: center; }
 .home2-sec-title button:hover { color: var(--brand); }
 
-@media (max-width: 1100px) { .home2-sections { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) { .home2-sections { grid-template-columns: 1fr; gap: 0; }
+  .home2-col:first-child, .home2-col:last-child { padding: 0; }
+  .home2-col + .home2-col { margin-top: clamp(30px, 5vh, 60px); } }
 </style>
